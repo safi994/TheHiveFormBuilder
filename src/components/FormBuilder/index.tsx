@@ -13,6 +13,13 @@ const ReactGridLayout = WidthProvider(RGL);
 
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElement[]>([]);
+  // Handle clicking outside elements to deselect
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedElement(null);
+    }
+  };
+
   const [activeTab, setActiveTab] = useState("editor");
   const [selectedElement, setSelectedElement] = useState<FormElement | null>(
     null,
@@ -102,7 +109,16 @@ const FormBuilder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div
+      className="min-h-screen bg-gray-100"
+      onAuxClick={(e) => {
+        if (e.button === 1) {
+          // Middle mouse button
+          e.preventDefault();
+          setSelectedElement(null);
+        }
+      }}
+    >
       <div className="container mx-auto p-4">
         <header className="bg-white p-4 rounded-lg shadow mb-4">
           <h1 className="text-2xl font-bold">Form Builder</h1>
@@ -132,6 +148,7 @@ const FormBuilder = () => {
 
           <div
             className="col-span-7 bg-white p-4 rounded-lg shadow"
+            onClick={handleBackgroundClick}
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
           >
@@ -152,22 +169,28 @@ const FormBuilder = () => {
                 }}
                 isDraggable
                 isResizable
+                draggableHandle=".drag-handle"
               >
                 {elements.map((element) => (
                   <div
                     key={element.i}
                     className={`border p-4 rounded relative cursor-pointer ${selectedElement?.i === element.i ? "border-blue-500 ring-2 ring-blue-500 z-20" : "border-gray-200"}`}
                     onClick={(e) => {
-                      e.preventDefault();
                       e.stopPropagation();
                       setSelectedElement(element);
                     }}
-                    onMouseDown={(e) => {
-                      setSelectedElement(element);
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onAuxClick={(e) => {
+                      if (e.button === 1) {
+                        // Middle mouse button
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedElement(null);
+                      }
                     }}
                   >
                     <div className="flex items-center">
-                      <GripVertical className="w-4 h-4 mr-2 text-gray-400" />
+                      <GripVertical className="w-4 h-4 mr-2 text-gray-400 drag-handle cursor-move" />
                       <span className="flex-grow">
                         {element.properties.label}
                       </span>
