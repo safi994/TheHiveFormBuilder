@@ -103,7 +103,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
   return (
     <div
-      className="bg-gray-50 p-4 rounded-lg"
+      className="bg-white p-4 rounded-lg shadow-sm border sticky top-4"
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >

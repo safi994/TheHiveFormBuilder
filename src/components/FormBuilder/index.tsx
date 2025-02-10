@@ -118,20 +118,12 @@ const FormBuilder = () => {
   };
 
   return (
-    <div
-      className="min-h-screen bg-gray-100"
-      onAuxClick={(e) => {
-        if (e.button === 1) {
-          e.preventDefault();
-          setSelectedElement(null);
-        }
-      }}
-    >
-      <div className="container mx-auto p-4">
-        <header className="bg-white p-4 rounded-lg shadow mb-4">
-          <h1 className="text-2xl font-bold">Form Builder</h1>
-          <div className="flex items-center justify-between mt-4">
-            <div className="flex space-x-4">
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 max-w-[1600px] mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-xl font-semibold">Form Builder</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex bg-gray-100 p-1 rounded-md">
               {[
                 { id: "editor", icon: Settings, label: "Editor" },
                 { id: "preview", icon: Eye, label: "Preview" },
@@ -140,7 +132,7 @@ const FormBuilder = () => {
                 <button
                   key={id}
                   onClick={() => setActiveTab(id)}
-                  className={`flex items-center px-4 py-2 rounded ${activeTab === id ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                  className={`flex items-center px-3 py-1.5 rounded ${activeTab === id ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
                 >
                   <Icon className="w-4 h-4 mr-2" />
                   {label}
@@ -149,13 +141,13 @@ const FormBuilder = () => {
             </div>
             <button
               onClick={() => setShowPDF(true)}
-              className="flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
             >
               <FileDown className="w-4 h-4 mr-2" />
               Export PDF
             </button>
           </div>
-        </header>
+        </div>
 
         <div className="grid grid-cols-12 gap-4">
           <ElementPalette
@@ -163,101 +155,106 @@ const FormBuilder = () => {
             onDragStart={handleDragStart}
           />
 
-          <div
-            className="col-span-7 bg-white p-4 rounded-lg shadow"
-            onClick={handleBackgroundClick}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={handleDrop}
-          >
-            {activeTab === "editor" && (
-              <ReactGridLayout
-                className="layout"
-                layout={elements}
-                cols={12}
-                rowHeight={50}
-                width={1200}
-                onLayoutChange={(newLayout) => {
-                  setElements(
-                    elements.map((el, i) => ({
-                      ...el,
-                      ...newLayout[i],
-                    })),
-                  );
-                }}
-                isDraggable
-                isResizable
-                draggableHandle=".drag-handle"
-              >
-                {elements.map((element) => (
-                  <div
-                    key={element.i}
-                    className={`border p-4 rounded relative cursor-pointer ${selectedElement?.i === element.i ? "border-blue-500 ring-2 ring-blue-500 z-20" : "border-gray-200"}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedElement(element);
-                    }}
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onAuxClick={(e) => {
-                      if (e.button === 1) {
-                        e.preventDefault();
+          <div className="col-span-6 bg-white rounded-lg border min-h-[calc(100vh-8rem)]">
+            <div
+              className="p-4 h-full"
+              onClick={handleBackgroundClick}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+            >
+              {activeTab === "editor" && (
+                <ReactGridLayout
+                  className="layout"
+                  layout={elements}
+                  cols={12}
+                  rowHeight={50}
+                  width={1200}
+                  onLayoutChange={(newLayout) => {
+                    setElements(
+                      elements.map((el, i) => ({
+                        ...el,
+                        ...newLayout[i],
+                      })),
+                    );
+                  }}
+                  isDraggable
+                  isResizable
+                  draggableHandle=".drag-handle"
+                >
+                  {elements.map((element) => (
+                    <div
+                      key={element.i}
+                      className={`border p-3 rounded-md relative cursor-pointer hover:border-blue-200 transition-colors ${selectedElement?.i === element.i ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"}`}
+                      onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedElement(null);
-                      }
-                    }}
-                  >
-                    <div className="flex items-center">
-                      <GripVertical className="w-4 h-4 mr-2 text-gray-400 drag-handle cursor-move" />
-                      <span className="flex-grow">
-                        {element.properties.label}
-                      </span>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setElements(
-                            elements.filter((el) => el.i !== element.i),
-                          );
-                          if (selectedElement?.i === element.i) {
-                            setSelectedElement(null);
-                          }
-                        }}
-                        className="text-red-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                        setSelectedElement(element);
+                      }}
+                      onMouseDown={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="w-4 h-4 text-gray-400 drag-handle cursor-move" />
+                        <span className="flex-grow text-sm">
+                          {element.properties.label}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setElements(
+                              elements.filter((el) => el.i !== element.i),
+                            );
+                            if (selectedElement?.i === element.i) {
+                              setSelectedElement(null);
+                            }
+                          }}
+                          className="text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="mt-2">
+                        <PreviewElement element={element} />
+                      </div>
                     </div>
-                    <PreviewElement element={element} />
-                  </div>
-                ))}
-              </ReactGridLayout>
-            )}
+                  ))}
+                </ReactGridLayout>
+              )}
 
-            {activeTab === "preview" && (
-              <FormPreview
-                elements={elements}
-                onValueChange={(id, value) => {
-                  setFormValues((prev) => ({ ...prev, [id]: value }));
-                }}
-                values={formValues}
-              />
-            )}
+              {activeTab === "preview" && (
+                <FormPreview
+                  elements={elements}
+                  onValueChange={(id, value) => {
+                    setFormValues((prev) => ({ ...prev, [id]: value }));
+                  }}
+                  values={formValues}
+                />
+              )}
 
-            {activeTab === "code" && (
-              <CodeEditor
-                elements={elements}
-                codeValue={codeValue}
-                codeError={codeError}
-                onCodeChange={handleCodeChange}
-              />
-            )}
+              {activeTab === "code" && (
+                <CodeEditor
+                  elements={elements}
+                  codeValue={codeValue}
+                  codeError={codeError}
+                  onCodeChange={handleCodeChange}
+                />
+              )}
+            </div>
           </div>
 
           <div className="col-span-3">
-            {activeTab === "editor" && selectedElement && (
-              <PropertyPanel
-                element={selectedElement}
-                onUpdateProperty={updateElementProperty}
-              />
-            )}
+            {activeTab === "editor" &&
+              (selectedElement ? (
+                <PropertyPanel
+                  element={selectedElement}
+                  onUpdateProperty={updateElementProperty}
+                />
+              ) : (
+                <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
+                  <h3 className="text-lg font-semibold mb-4">Properties</h3>
+                  <p className="text-gray-500 text-sm">
+                    Select an element to view and edit its properties
+                  </p>
+                </div>
+              ))}
           </div>
         </div>
       </div>
