@@ -49,6 +49,18 @@ export const ELEMENT_TYPES: ElementType[] = [
       label: "Checkbox Field",
       required: false,
       defaultChecked: false,
+      options: [],
+    },
+  },
+  {
+    id: "radio",
+    label: "Radio Group",
+    icon: "◉",
+    properties: {
+      label: "Radio Field",
+      required: false,
+      options: [],
+      defaultValue: "",
     },
   },
 ];

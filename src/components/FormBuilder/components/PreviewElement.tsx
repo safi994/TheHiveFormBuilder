@@ -63,15 +63,59 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "checkbox":
       return (
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            className="mr-2"
-            required={properties.required}
-            checked={value ?? properties.defaultChecked}
-            onChange={onChange ? (e) => onChange(e.target.checked) : undefined}
-          />
-          <span>{properties.label}</span>
+        <div className="space-y-2">
+          {(Array.isArray(properties.options) && properties.options.length > 0
+            ? properties.options
+            : [properties.label]
+          ).map((option, index) => (
+            <div key={index} className="flex items-center">
+              <input
+                type="checkbox"
+                className="mr-2"
+                required={properties.required}
+                checked={
+                  Array.isArray(value)
+                    ? value[index]
+                    : index === 0
+                      ? value
+                      : false
+                }
+                onChange={
+                  onChange
+                    ? (e) => {
+                        const newValues = Array.isArray(value)
+                          ? [...value]
+                          : [];
+                        newValues[index] = e.target.checked;
+                        onChange(newValues);
+                      }
+                    : undefined
+                }
+              />
+              <span>{option}</span>
+            </div>
+          ))}
+        </div>
+      );
+    case "radio":
+      return (
+        <div className="space-y-2">
+          {(Array.isArray(properties.options) && properties.options.length > 0
+            ? properties.options
+            : [properties.label]
+          ).map((option, index) => (
+            <div key={index} className="flex items-center">
+              <input
+                type="radio"
+                name={element.i}
+                className="mr-2"
+                required={properties.required}
+                checked={value === option}
+                onChange={onChange ? () => onChange(option) : undefined}
+              />
+              <span>{option}</span>
+            </div>
+          ))}
         </div>
       );
     default:

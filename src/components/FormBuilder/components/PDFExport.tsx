@@ -147,34 +147,85 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                               switch (element.type) {
                                 case "checkbox":
                                   return (
-                                    <View style={styles.checkboxContainer}>
-                                      <View style={styles.checkbox}>
-                                        {value && (
-                                          <Svg
-                                            width="10"
-                                            height="10"
-                                            viewBox="0 0 24 24"
-                                          >
-                                            <Path
-                                              d="M20 6L9 17L4 12"
-                                              stroke="#000"
-                                              strokeWidth="2"
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              fill="none"
-                                            />
-                                          </Svg>
-                                        )}
-                                      </View>
-                                      <Text style={{ fontSize: 12 }}>
-                                        {element.properties.label}
-                                      </Text>
+                                    <View style={{ gap: 4 }}>
+                                      {(Array.isArray(
+                                        element.properties.options,
+                                      ) && element.properties.options.length > 0
+                                        ? element.properties.options
+                                        : [element.properties.label]
+                                      ).map((option, index) => (
+                                        <View
+                                          key={index}
+                                          style={styles.checkboxContainer}
+                                        >
+                                          <View style={styles.checkbox}>
+                                            {(Array.isArray(value)
+                                              ? value[index]
+                                              : index === 0 && value) && (
+                                              <Svg
+                                                width="10"
+                                                height="10"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <Path
+                                                  d="M20 6L9 17L4 12"
+                                                  stroke="#000"
+                                                  strokeWidth="2"
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  fill="none"
+                                                />
+                                              </Svg>
+                                            )}
+                                          </View>
+                                          <Text style={{ fontSize: 12 }}>
+                                            {option}
+                                          </Text>
+                                        </View>
+                                      ))}
                                     </View>
                                   );
                                 case "select":
                                   return (
                                     <View style={styles.select}>
                                       <Text selectable>{value || ""}</Text>
+                                    </View>
+                                  );
+                                case "radio":
+                                  return (
+                                    <View style={{ gap: 4 }}>
+                                      {(Array.isArray(
+                                        element.properties.options,
+                                      ) && element.properties.options.length > 0
+                                        ? element.properties.options
+                                        : [element.properties.label]
+                                      ).map((option, index) => (
+                                        <View
+                                          key={index}
+                                          style={styles.checkboxContainer}
+                                        >
+                                          <View
+                                            style={[
+                                              styles.checkbox,
+                                              { borderRadius: 6 },
+                                            ]}
+                                          >
+                                            {value === option && (
+                                              <View
+                                                style={{
+                                                  width: 6,
+                                                  height: 6,
+                                                  borderRadius: 3,
+                                                  backgroundColor: "#000",
+                                                }}
+                                              />
+                                            )}
+                                          </View>
+                                          <Text style={{ fontSize: 12 }}>
+                                            {option}
+                                          </Text>
+                                        </View>
+                                      ))}
                                     </View>
                                   );
                                 default:
