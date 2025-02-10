@@ -1,1 +1,13 @@
-{"grid":{"cols":12,"rowHeight":50,"width":1200,"defaultElementWidth":6,"defaultElementHeight":2},"spacing":{"gap":4,"padding":4}}
+{
+  "grid": {
+    "cols": 12,
+    "rowHeight": 50,
+    "width": 2000,
+    "defaultElementWidth": 6,
+    "defaultElementHeight": 2
+  },
+  "spacing": {
+    "gap": 4,
+    "padding": 4
+  }
+}

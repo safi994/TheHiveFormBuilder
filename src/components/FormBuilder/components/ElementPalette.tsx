@@ -11,7 +11,7 @@ export const ElementPalette: React.FC<ElementPaletteProps> = ({
   onDragStart,
 }) => {
   return (
-    <div className="col-span-3 bg-white p-4 rounded-lg shadow-sm border">
+    <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
       <h2 className="text-lg font-semibold mb-4">Elements</h2>
       <div className="space-y-2">
         {elementTypes.map((type) => (

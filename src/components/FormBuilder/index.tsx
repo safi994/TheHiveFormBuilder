@@ -16,6 +16,7 @@ import { CodeEditor } from "./components/CodeEditor";
 import { PDFExport } from "./components/PDFExport";
 import { ELEMENT_TYPES } from "./constants";
 import { FormElement } from "./types";
+import config from "./config";
 
 const ReactGridLayout = WidthProvider(RGL);
 
@@ -119,7 +120,7 @@ const FormBuilder = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="p-4 max-w-[1600px] mx-auto">
+      <div style={{ maxWidth: "2500px" }} className="p-4 mx-auto">
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-semibold">Form Builder</h1>
           <div className="flex items-center gap-4">
@@ -150,12 +151,14 @@ const FormBuilder = () => {
         </div>
 
         <div className="grid grid-cols-12 gap-4">
-          <ElementPalette
-            elementTypes={ELEMENT_TYPES}
-            onDragStart={handleDragStart}
-          />
+          <div className="col-span-3">
+            <ElementPalette
+              elementTypes={ELEMENT_TYPES}
+              onDragStart={handleDragStart}
+            />
+          </div>
 
-          <div className="col-span-6 bg-white rounded-lg border min-h-[calc(100vh-8rem)]">
+          <div className="col-span-6 bg-white rounded-lg border min-h-[calc(100vh-8rem)] w-full">
             <div
               className="p-4 h-full"
               onClick={handleBackgroundClick}
@@ -166,9 +169,9 @@ const FormBuilder = () => {
                 <ReactGridLayout
                   className="layout"
                   layout={elements}
-                  cols={12}
-                  rowHeight={50}
-                  width={1200}
+                  cols={config.layout.grid.cols}
+                  rowHeight={config.layout.grid.rowHeight}
+                  width={config.layout.grid.width}
                   onLayoutChange={(newLayout) => {
                     setElements(
                       elements.map((el, i) => ({
