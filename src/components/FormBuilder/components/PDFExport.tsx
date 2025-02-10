@@ -51,13 +51,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginBottom: 15,
-    flexWrap: "wrap",
+    flexWrap: "nowrap",
+    width: "100%",
   },
   section: {
     padding: 10,
     marginRight: 10,
     flex: 1,
-    minWidth: 200,
+    minWidth: 0, // Remove minimum width constraint
   },
   label: {
     fontSize: 10,
@@ -130,7 +131,10 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                         {rowElements.map((element) => (
                           <View
                             key={element.i}
-                            style={[styles.section, { flex: element.w / 12 }]}
+                            style={[
+                              styles.section,
+                              { flex: Math.min(element.w, 4) },
+                            ]}
                           >
                             <Text style={styles.label}>
                               {element.properties.label}
