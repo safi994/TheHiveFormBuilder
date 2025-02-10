@@ -62,10 +62,10 @@ const FormBuilder = () => {
       const newElement = {
         ...draggedElement,
         i: draggedElement.id!,
-        x: Math.min(x, 6),
+        x: Math.min(x, config.settings.defaultValues.elementWidth),
         y,
-        w: 6,
-        h: 2,
+        w: config.settings.defaultValues.elementWidth,
+        h: config.settings.defaultValues.elementHeight,
         type: draggedElement.type!,
         properties: { ...draggedElement.properties! },
       } as FormElement;
@@ -125,20 +125,23 @@ const FormBuilder = () => {
           <h1 className="text-xl font-semibold">Form Builder</h1>
           <div className="flex items-center gap-4">
             <div className="flex bg-gray-100 p-1 rounded-md">
-              {[
-                { id: "editor", icon: Settings, label: "Editor" },
-                { id: "preview", icon: Eye, label: "Preview" },
-                { id: "code", icon: Code, label: "Code" },
-              ].map(({ id, icon: Icon, label }) => (
-                <button
-                  key={id}
-                  onClick={() => setActiveTab(id)}
-                  className={`flex items-center px-3 py-1.5 rounded ${activeTab === id ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
-                >
-                  <Icon className="w-4 h-4 mr-2" />
-                  {label}
-                </button>
-              ))}
+              {config.settings.editor.tabs.map(({ id, icon, label }) => {
+                const Icon = {
+                  Settings,
+                  Eye,
+                  Code,
+                }[icon];
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    className={`flex items-center px-3 py-1.5 rounded ${activeTab === id ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {label}
+                  </button>
+                );
+              })}
             </div>
             <button
               onClick={() => setShowPDF(true)}
@@ -215,7 +218,7 @@ const FormBuilder = () => {
                         </button>
                       </div>
                       <div className="mt-2">
-                        <PreviewElement element={element} />
+                        <PreviewElement element={element} readOnly={true} />
                       </div>
                     </div>
                   ))}
@@ -240,6 +243,12 @@ const FormBuilder = () => {
                   onCodeChange={handleCodeChange}
                 />
               )}
+
+              {elements.length === 0 && activeTab === "editor" && (
+                <div className="text-center py-8 text-gray-500 border-2 border-dashed rounded">
+                  {config.settings.dragAndDrop.emptyStateMessage}
+                </div>
+              )}
             </div>
           </div>
 
@@ -252,9 +261,11 @@ const FormBuilder = () => {
                 />
               ) : (
                 <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
-                  <h3 className="text-lg font-semibold mb-4">Properties</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    {config.settings.propertyPanel.title}
+                  </h3>
                   <p className="text-gray-500 text-sm">
-                    Select an element to view and edit its properties
+                    {config.settings.propertyPanel.emptyStateMessage}
                   </p>
                 </div>
               ))}

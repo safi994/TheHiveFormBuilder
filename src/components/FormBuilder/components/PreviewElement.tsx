@@ -1,11 +1,23 @@
 import React from "react";
 import { FormElement } from "../types";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export interface PreviewElementProps {
   element: FormElement;
   value?: any;
   onChange?: (value: any) => void;
   isPreview?: boolean;
+  readOnly?: boolean;
 }
 
 export const PreviewElement: React.FC<PreviewElementProps> = ({
@@ -13,6 +25,7 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
   value,
   onChange,
   isPreview = false,
+  readOnly = false,
 }) => {
   const { properties } = element;
 
@@ -26,14 +39,24 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     );
   }
 
+  const commonProps = readOnly
+    ? {
+        value: value ?? properties.defaultValue ?? "",
+        disabled: true,
+      }
+    : {
+        defaultValue: properties.defaultValue ?? "",
+        onChange: onChange
+          ? (e: React.ChangeEvent<any>) => onChange(e.target.value)
+          : undefined,
+      };
+
   switch (element.type) {
     case "textarea":
       return (
-        <textarea
+        <Textarea
+          {...commonProps}
           placeholder={properties.placeholder}
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full p-2 border rounded"
           required={properties.required}
           minLength={properties.minLength}
           maxLength={properties.maxLength}
@@ -42,11 +65,9 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "date":
       return (
-        <input
+        <Input
           type="date"
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full p-2 border rounded"
+          {...commonProps}
           required={properties.required}
           min={properties.min}
           max={properties.max}
@@ -54,22 +75,26 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "time":
       return (
-        <input
+        <Input
           type="time"
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full p-2 border rounded"
+          {...commonProps}
           required={properties.required}
           min={properties.min}
           max={properties.max}
         />
       );
     case "file":
+      if (readOnly) {
+        return (
+          <div className="w-full p-2 border rounded-md bg-muted">
+            {value?.name || "No file selected"}
+          </div>
+        );
+      }
       return (
-        <input
+        <Input
           type="file"
           onChange={onChange ? (e) => onChange(e.target.files?.[0]) : undefined}
-          className="w-full p-2 border rounded"
           required={properties.required}
           accept={properties.accept}
           multiple={properties.multiple}
@@ -77,12 +102,10 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "text":
       return (
-        <input
+        <Input
           type="text"
+          {...commonProps}
           placeholder={properties.placeholder}
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full p-2 border rounded"
           required={properties.required}
           minLength={properties.minLength}
           maxLength={properties.maxLength}
@@ -91,12 +114,10 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "number":
       return (
-        <input
+        <Input
           type="number"
+          {...commonProps}
           placeholder={properties.placeholder}
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-          className="w-full p-2 border rounded"
           required={properties.required}
           min={properties.min}
           max={properties.max}
@@ -105,21 +126,23 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
       );
     case "select":
       return (
-        <select
-          className="w-full p-2 border rounded"
-          required={properties.required}
-          multiple={properties.multiple}
-          value={value ?? properties.defaultValue}
-          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+        <Select
+          value={value ?? properties.defaultValue ?? ""}
+          onValueChange={!readOnly && onChange ? onChange : undefined}
+          disabled={readOnly}
         >
-          <option value="">Select an option...</option>
-          {Array.isArray(properties.options) &&
-            properties.options.map((option: string, i: number) => (
-              <option key={i} value={option}>
-                {option}
-              </option>
-            ))}
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select an option..." />
+          </SelectTrigger>
+          <SelectContent>
+            {Array.isArray(properties.options) &&
+              properties.options.map((option: string, i: number) => (
+                <SelectItem key={i} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
       );
     case "checkbox":
       return (
@@ -128,11 +151,9 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
             ? properties.options
             : [properties.label]
           ).map((option, index) => (
-            <div key={index} className="flex items-center">
-              <input
-                type="checkbox"
-                className="w-4 h-4 mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                required={properties.required}
+            <div key={index} className="flex items-center space-x-2">
+              <Checkbox
+                id={`${element.i}-${index}`}
                 checked={
                   Array.isArray(value)
                     ? value[index]
@@ -140,43 +161,51 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
                       ? value
                       : false
                 }
-                onChange={
-                  onChange
-                    ? (e) => {
+                onCheckedChange={
+                  !readOnly && onChange
+                    ? (checked) => {
                         const newValues = Array.isArray(value)
-                          ? [...value]
+                          ? [...(value || [])]
                           : [];
-                        newValues[index] = e.target.checked;
+                        newValues[index] = checked;
                         onChange(newValues);
                       }
                     : undefined
                 }
+                disabled={readOnly}
               />
-              <span>{option}</span>
+              <label
+                htmlFor={`${element.i}-${index}`}
+                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {option}
+              </label>
             </div>
           ))}
         </div>
       );
     case "radio":
       return (
-        <div className="space-y-2">
+        <RadioGroup
+          value={value}
+          onValueChange={!readOnly && onChange ? onChange : undefined}
+          disabled={readOnly}
+        >
           {(Array.isArray(properties.options) && properties.options.length > 0
             ? properties.options
             : [properties.label]
           ).map((option, index) => (
-            <div key={index} className="flex items-center">
-              <input
-                type="radio"
-                name={element.i}
-                className="w-4 h-4 mr-2 border-gray-300 text-blue-600 focus:ring-blue-500"
-                required={properties.required}
-                checked={value === option}
-                onChange={onChange ? () => onChange(option) : undefined}
-              />
-              <span>{option}</span>
+            <div key={index} className="flex items-center space-x-2">
+              <RadioGroupItem value={option} id={`${element.i}-${index}`} />
+              <label
+                htmlFor={`${element.i}-${index}`}
+                className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {option}
+              </label>
             </div>
           ))}
-        </div>
+        </RadioGroup>
       );
     default:
       return <div>Unsupported element type</div>;

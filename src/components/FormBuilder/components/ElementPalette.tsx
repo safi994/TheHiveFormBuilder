@@ -1,5 +1,6 @@
 import React, { useState, memo } from "react";
 import { ElementType } from "../types";
+import config from "../config";
 import {
   Type,
   Hash,
@@ -99,7 +100,9 @@ const ElementPalette = memo(
 
     return (
       <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
-        <h2 className="text-lg font-semibold mb-4">Elements</h2>
+        <h2 className="text-lg font-semibold mb-4">
+          {config.settings.dragAndDrop.elementPaletteTitle}
+        </h2>
         <div className="flex bg-gray-100 p-1 rounded-md mb-4">
           {[
             { id: "basic", label: "Basic", icon: LayoutGrid },

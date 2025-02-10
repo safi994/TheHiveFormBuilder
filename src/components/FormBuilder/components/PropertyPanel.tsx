@@ -1,5 +1,6 @@
 import React from "react";
 import { PropertyPanelProps } from "../types";
+import config from "../config";
 
 export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   element,
@@ -144,7 +145,9 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
       onClick={(e) => e.stopPropagation()}
       onMouseDown={(e) => e.stopPropagation()}
     >
-      <h3 className="text-lg font-semibold mb-4">Properties</h3>
+      <h3 className="text-lg font-semibold mb-4">
+        {config.settings.propertyPanel.title}
+      </h3>
       {Object.entries(element.properties).map(([key, value]) => (
         <div
           key={key}
