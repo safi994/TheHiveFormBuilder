@@ -7,6 +7,43 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const renderPropertyInput = (key: string, value: any) => {
     switch (key) {
+      case "rows":
+      case "showInPreview":
+      case "showInPDF":
+        if (element.type === "spacer") {
+          if (key === "rows") {
+            return (
+              <input
+                type="number"
+                min="0"
+                max="10"
+                value={value}
+                onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onUpdateProperty(element.i, key, Number(e.target.value));
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full p-2 border rounded mt-1"
+              />
+            );
+          } else {
+            return (
+              <input
+                type="checkbox"
+                checked={value}
+                onChange={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onUpdateProperty(element.i, key, e.target.checked);
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="ml-2"
+              />
+            );
+          }
+        }
+        return null;
       case "required":
       case "multiple":
       case "defaultChecked":

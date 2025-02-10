@@ -46,16 +46,19 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
                   }}
                   className="w-full"
                 >
-                  <label className="block text-sm font-medium mb-2">
-                    {element.properties.label}
-                    {element.properties.required && (
-                      <span className="text-red-500 ml-1">*</span>
-                    )}
-                  </label>
+                  {element.type !== "spacer" && (
+                    <label className="block text-sm font-medium mb-2">
+                      {element.properties.label}
+                      {element.properties.required && (
+                        <span className="text-red-500 ml-1">*</span>
+                      )}
+                    </label>
+                  )}
                   <PreviewElement
                     element={element}
                     value={values[element.i]}
                     onChange={(value) => onValueChange(element.i, value)}
+                    isPreview={true}
                   />
                 </div>
               );

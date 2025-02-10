@@ -110,16 +110,30 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                               {
                                 width: `${(element.w / 12) * 100}%`,
                                 paddingRight: 8,
+                                height:
+                                  element.type === "spacer" &&
+                                  element.properties.showInPDF
+                                    ? element.properties.rows * 20
+                                    : undefined,
+                                padding:
+                                  element.type === "spacer" ? 0 : undefined,
+                                margin:
+                                  element.type === "spacer" ? 0 : undefined,
                               },
                             ]}
                           >
-                            <Text style={styles.label}>
-                              {element.properties.label}
-                              {element.properties.required && (
-                                <Text style={styles.required}> *</Text>
-                              )}
-                            </Text>
+                            {element.type !== "spacer" && (
+                              <Text style={styles.label}>
+                                {element.properties.label}
+                                {element.properties.required && (
+                                  <Text style={styles.required}> *</Text>
+                                )}
+                              </Text>
+                            )}
                             {(() => {
+                              if (element.type === "spacer") {
+                                return null;
+                              }
                               const value = formValues[element.i];
                               switch (element.type) {
                                 case "textarea":

@@ -5,14 +5,26 @@ export interface PreviewElementProps {
   element: FormElement;
   value?: any;
   onChange?: (value: any) => void;
+  isPreview?: boolean;
 }
 
 export const PreviewElement: React.FC<PreviewElementProps> = ({
   element,
   value,
   onChange,
+  isPreview = false,
 }) => {
   const { properties } = element;
+
+  if (element.type === "spacer") {
+    if (isPreview && !properties.showInPreview) return null;
+    return (
+      <div
+        className={`w-full ${!isPreview ? "border border-dashed border-gray-200/50 rounded-md" : ""}`}
+        style={{ height: `${properties.rows * 50}px` }}
+      />
+    );
+  }
 
   switch (element.type) {
     case "textarea":

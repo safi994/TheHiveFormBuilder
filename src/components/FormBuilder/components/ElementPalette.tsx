@@ -3,6 +3,7 @@ import { ElementType } from "../types";
 import {
   Type,
   Hash,
+  Minus,
   ListChecks,
   CheckSquare,
   CircleDot,
@@ -10,6 +11,10 @@ import {
   LayoutGrid,
   Sparkles,
   Blocks,
+  MessageSquare,
+  Calendar,
+  Clock,
+  FileUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,8 +36,12 @@ interface ElementCardProps {
 
 const getIconForType = (type: string) => {
   switch (type) {
+    case "spacer":
+      return <Minus className="w-4 h-4" />;
     case "text":
       return <Type className="w-4 h-4" />;
+    case "textarea":
+      return <MessageSquare className="w-4 h-4" />;
     case "number":
       return <Hash className="w-4 h-4" />;
     case "select":
@@ -41,6 +50,12 @@ const getIconForType = (type: string) => {
       return <CheckSquare className="w-4 h-4" />;
     case "radio":
       return <CircleDot className="w-4 h-4" />;
+    case "date":
+      return <Calendar className="w-4 h-4" />;
+    case "time":
+      return <Clock className="w-4 h-4" />;
+    case "file":
+      return <FileUp className="w-4 h-4" />;
     default:
       return <Type className="w-4 h-4" />;
   }
