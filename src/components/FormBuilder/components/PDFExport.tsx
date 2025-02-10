@@ -10,13 +10,12 @@ import {
   Path,
 } from "@react-pdf/renderer";
 import { FormElement } from "../types";
+import config from "../config";
 
 const styles = StyleSheet.create({
+  ...config.pdf.styles,
   checkbox: {
-    width: 12,
-    height: 12,
-    border: "1px solid #000",
-    marginRight: 6,
+    ...config.pdf.styles.elements.checkbox,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -25,53 +24,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  select: {
-    padding: 4,
-    marginTop: 2,
-    minHeight: 14,
-    border: "1px solid #000",
-    fontSize: 12,
-  },
-  input: {
-    padding: 4,
-    marginTop: 2,
-    minHeight: 14,
-    border: "1px solid #000",
-    fontSize: 12,
-  },
-  page: {
-    backgroundColor: "#ffffff",
-    padding: 30,
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: "bold",
-  },
-  row: {
-    flexDirection: "row",
-    marginBottom: 15,
-    flexWrap: "nowrap",
-    width: "100%",
-  },
-  section: {
-    padding: 10,
-    marginRight: 10,
-    flex: 1,
-    minWidth: 0, // Remove minimum width constraint
-  },
-  label: {
-    fontSize: 10,
-    marginBottom: 5,
-    color: "#374151",
-  },
-  value: {
-    fontSize: 12,
-    color: "#111827",
-  },
-  required: {
-    color: "#EF4444",
-  },
+  select: config.pdf.styles.elements.select,
+  input: config.pdf.styles.elements.input,
 });
 
 interface PDFExportProps {
@@ -133,7 +87,16 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                             key={element.i}
                             style={[
                               styles.section,
-                              { flex: Math.min(element.w, 4) },
+                              {
+                                width: `${(element.w / 12) * 100}%`,
+                                flex: element.w,
+                                maxWidth: `${(element.w / 12) * 100}%`,
+                                marginRight:
+                                  rowElements.indexOf(element) ===
+                                  rowElements.length - 1
+                                    ? 0
+                                    : 2,
+                              },
                             ]}
                           >
                             <Text style={styles.label}>

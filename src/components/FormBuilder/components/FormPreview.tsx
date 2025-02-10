@@ -1,6 +1,7 @@
 import React from "react";
 import { FormElement } from "../types";
 import { PreviewElement } from "./PreviewElement";
+import config from "../config";
 
 interface FormPreviewProps {
   elements: FormElement[];
@@ -30,9 +31,9 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
     .map(([_, rowElements]) => rowElements.sort((a, b) => a.x - b.x));
 
   return (
-    <form className="w-full bg-white p-8 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6">Form Preview</h2>
-      <div className="space-y-4">
+    <form className={config.styles.form.container}>
+      <h2 className={config.styles.form.title}>Form Preview</h2>
+      <div className={config.styles.form.grid}>
         {sortedRows.map((rowElements, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-12 gap-4">
             {rowElements.map((element) => {

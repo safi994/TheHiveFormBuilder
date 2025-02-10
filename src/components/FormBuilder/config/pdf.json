@@ -1,0 +1,61 @@
+{
+  "styles": {
+    "page": {
+      "backgroundColor": "#ffffff",
+      "padding": 30
+    },
+    "title": {
+      "fontSize": 24,
+      "marginBottom": 20,
+      "fontWeight": "bold"
+    },
+    "row": {
+      "flexDirection": "row",
+      "marginBottom": 0,
+      "flexWrap": "nowrap",
+      "width": "100%",
+      "gap": 0,
+      "justifyContent": "flex-start"
+    },
+    "section": {
+      "padding": "2 2",
+      "marginRight": 0,
+      "marginBottom": 8,
+      "marginLeft": 0
+    },
+    "label": {
+      "fontSize": 10,
+      "marginBottom": 2,
+      "color": "#374151"
+    },
+    "value": {
+      "fontSize": 12,
+      "color": "#111827"
+    },
+    "required": {
+      "color": "#EF4444"
+    },
+    "elements": {
+      "checkbox": {
+        "width": 12,
+        "height": 12,
+        "border": "1px solid #000",
+        "marginRight": 6
+      },
+      "select": {
+        "padding": 2,
+        "marginTop": 0,
+        "minHeight": 14,
+        "border": "1px solid #000",
+        "fontSize": 12
+      },
+      "input": {
+        "padding": 2,
+        "marginTop": 0,
+        "minHeight": 14,
+        "border": "1px solid #000",
+        "fontSize": 12
+      }
+    }
+  }
+}
