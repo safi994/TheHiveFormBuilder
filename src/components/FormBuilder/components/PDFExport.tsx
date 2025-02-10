@@ -109,13 +109,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                               styles.section,
                               {
                                 width: `${(element.w / 12) * 100}%`,
-                                flex: element.w,
-                                maxWidth: `${(element.w / 12) * 100}%`,
-                                marginRight:
-                                  rowElements.indexOf(element) ===
-                                  rowElements.length - 1
-                                    ? 0
-                                    : 2,
+                                paddingRight: 8,
                               },
                             ]}
                           >
@@ -128,6 +122,42 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                             {(() => {
                               const value = formValues[element.i];
                               switch (element.type) {
+                                case "textarea":
+                                  return (
+                                    <View style={styles.input}>
+                                      <Text selectable>{value || ""}</Text>
+                                    </View>
+                                  );
+                                case "date":
+                                  return (
+                                    <View style={styles.input}>
+                                      <Text selectable>
+                                        {value
+                                          ? new Date(value)
+                                              .toLocaleDateString("en-GB", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                              })
+                                              .replace(/\//g, "/")
+                                          : "dd/mm/yyyy"}
+                                      </Text>
+                                    </View>
+                                  );
+                                case "time":
+                                  return (
+                                    <View style={styles.input}>
+                                      <Text selectable>{value || ""}</Text>
+                                    </View>
+                                  );
+                                case "file":
+                                  return (
+                                    <View style={styles.input}>
+                                      <Text selectable>
+                                        {value?.name || "No file selected"}
+                                      </Text>
+                                    </View>
+                                  );
                                 case "checkbox":
                                   return (
                                     <View style={{ gap: 4 }}>

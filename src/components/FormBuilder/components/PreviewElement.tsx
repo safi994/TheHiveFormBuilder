@@ -15,6 +15,54 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
   const { properties } = element;
 
   switch (element.type) {
+    case "textarea":
+      return (
+        <textarea
+          placeholder={properties.placeholder}
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          className="w-full p-2 border rounded"
+          required={properties.required}
+          minLength={properties.minLength}
+          maxLength={properties.maxLength}
+          rows={properties.rows}
+        />
+      );
+    case "date":
+      return (
+        <input
+          type="date"
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          className="w-full p-2 border rounded"
+          required={properties.required}
+          min={properties.min}
+          max={properties.max}
+        />
+      );
+    case "time":
+      return (
+        <input
+          type="time"
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+          className="w-full p-2 border rounded"
+          required={properties.required}
+          min={properties.min}
+          max={properties.max}
+        />
+      );
+    case "file":
+      return (
+        <input
+          type="file"
+          onChange={onChange ? (e) => onChange(e.target.files?.[0]) : undefined}
+          className="w-full p-2 border rounded"
+          required={properties.required}
+          accept={properties.accept}
+          multiple={properties.multiple}
+        />
+      );
     case "text":
       return (
         <input
@@ -71,7 +119,7 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
             <div key={index} className="flex items-center">
               <input
                 type="checkbox"
-                className="mr-2"
+                className="w-4 h-4 mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 required={properties.required}
                 checked={
                   Array.isArray(value)
@@ -108,7 +156,7 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
               <input
                 type="radio"
                 name={element.i}
-                className="mr-2"
+                className="w-4 h-4 mr-2 border-gray-300 text-blue-600 focus:ring-blue-500"
                 required={properties.required}
                 checked={value === option}
                 onChange={onChange ? () => onChange(option) : undefined}
