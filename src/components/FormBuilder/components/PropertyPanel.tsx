@@ -25,23 +25,47 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
         );
       case "options":
         return (
-          <div className="mt-2">
+          <div className="mt-2 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-500">One option per line</span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const sampleOptions = [
+                    "Option 1",
+                    "Option 2",
+                    "Option 3",
+                    "Option 4",
+                    "Option 5",
+                  ];
+                  onUpdateProperty(element.i, "options", [
+                    ...(Array.isArray(value) ? value : []),
+                    ...sampleOptions,
+                  ]);
+                }}
+                className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Add Sample Options
+              </button>
+            </div>
             <textarea
-              value={Array.isArray(value) ? value.join("\n") : ""}
+              value={Array.isArray(value) ? value.join("\n") : value || ""}
               onChange={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                onUpdateProperty(
-                  element.i,
-                  "options",
-                  e.target.value.split("\n").filter(Boolean),
-                );
+                const options = e.target.value
+                  .split("\n")
+                  .map((opt) => opt.trim())
+                  .filter(Boolean);
+                onUpdateProperty(element.i, "options", options);
               }}
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.stopPropagation()}
               className="w-full p-2 border rounded"
               placeholder="One option per line"
-              rows={4}
+              rows={8}
+              style={{ minHeight: "200px" }}
             />
           </div>
         );

@@ -1,7 +1,17 @@
 import React from "react";
-import { PreviewElementProps } from "../types";
+import { FormElement } from "../types";
 
-export const PreviewElement: React.FC<PreviewElementProps> = ({ element }) => {
+export interface PreviewElementProps {
+  element: FormElement;
+  value?: any;
+  onChange?: (value: any) => void;
+}
+
+export const PreviewElement: React.FC<PreviewElementProps> = ({
+  element,
+  value,
+  onChange,
+}) => {
   const { properties } = element;
 
   switch (element.type) {
@@ -10,7 +20,8 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({ element }) => {
         <input
           type="text"
           placeholder={properties.placeholder}
-          defaultValue={properties.defaultValue}
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className="w-full p-2 border rounded"
           required={properties.required}
           minLength={properties.minLength}
@@ -23,7 +34,8 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({ element }) => {
         <input
           type="number"
           placeholder={properties.placeholder}
-          defaultValue={properties.defaultValue}
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           className="w-full p-2 border rounded"
           required={properties.required}
           min={properties.min}
@@ -37,13 +49,16 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({ element }) => {
           className="w-full p-2 border rounded"
           required={properties.required}
           multiple={properties.multiple}
-          defaultValue={properties.defaultValue}
+          value={value ?? properties.defaultValue}
+          onChange={onChange ? (e) => onChange(e.target.value) : undefined}
         >
-          {properties.options.map((option: string, i: number) => (
-            <option key={i} value={option}>
-              {option}
-            </option>
-          ))}
+          <option value="">Select an option...</option>
+          {Array.isArray(properties.options) &&
+            properties.options.map((option: string, i: number) => (
+              <option key={i} value={option}>
+                {option}
+              </option>
+            ))}
         </select>
       );
     case "checkbox":
@@ -53,7 +68,8 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({ element }) => {
             type="checkbox"
             className="mr-2"
             required={properties.required}
-            defaultChecked={properties.defaultChecked}
+            checked={value ?? properties.defaultChecked}
+            onChange={onChange ? (e) => onChange(e.target.checked) : undefined}
           />
           <span>{properties.label}</span>
         </div>

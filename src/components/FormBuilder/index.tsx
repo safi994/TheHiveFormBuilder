@@ -1,11 +1,19 @@
 import React, { useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
-import { Settings, Eye, Code, Trash2, GripVertical } from "lucide-react";
+import {
+  Settings,
+  Eye,
+  Code,
+  Trash2,
+  GripVertical,
+  FileDown,
+} from "lucide-react";
 import { ElementPalette } from "./components/ElementPalette";
 import { PropertyPanel } from "./components/PropertyPanel";
 import { PreviewElement } from "./components/PreviewElement";
 import { FormPreview } from "./components/FormPreview";
 import { CodeEditor } from "./components/CodeEditor";
+import { PDFExport } from "./components/PDFExport";
 import { ELEMENT_TYPES } from "./constants";
 import { FormElement } from "./types";
 
@@ -13,13 +21,6 @@ const ReactGridLayout = WidthProvider(RGL);
 
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElement[]>([]);
-  // Handle clicking outside elements to deselect
-  const handleBackgroundClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setSelectedElement(null);
-    }
-  };
-
   const [activeTab, setActiveTab] = useState("editor");
   const [selectedElement, setSelectedElement] = useState<FormElement | null>(
     null,
@@ -28,6 +29,14 @@ const FormBuilder = () => {
     useState<Partial<FormElement> | null>(null);
   const [codeValue, setCodeValue] = useState("");
   const [codeError, setCodeError] = useState("");
+  const [showPDF, setShowPDF] = useState(false);
+  const [formValues, setFormValues] = useState<Record<string, any>>({});
+
+  const handleBackgroundClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedElement(null);
+    }
+  };
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     const elementType = ELEMENT_TYPES.find((t) => t.id === type);
@@ -113,7 +122,6 @@ const FormBuilder = () => {
       className="min-h-screen bg-gray-100"
       onAuxClick={(e) => {
         if (e.button === 1) {
-          // Middle mouse button
           e.preventDefault();
           setSelectedElement(null);
         }
@@ -122,21 +130,30 @@ const FormBuilder = () => {
       <div className="container mx-auto p-4">
         <header className="bg-white p-4 rounded-lg shadow mb-4">
           <h1 className="text-2xl font-bold">Form Builder</h1>
-          <div className="flex space-x-4 mt-4">
-            {[
-              { id: "editor", icon: Settings, label: "Editor" },
-              { id: "preview", icon: Eye, label: "Preview" },
-              { id: "code", icon: Code, label: "Code" },
-            ].map(({ id, icon: Icon, label }) => (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                className={`flex items-center px-4 py-2 rounded ${activeTab === id ? "bg-blue-500 text-white" : "bg-gray-200"}`}
-              >
-                <Icon className="w-4 h-4 mr-2" />
-                {label}
-              </button>
-            ))}
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex space-x-4">
+              {[
+                { id: "editor", icon: Settings, label: "Editor" },
+                { id: "preview", icon: Eye, label: "Preview" },
+                { id: "code", icon: Code, label: "Code" },
+              ].map(({ id, icon: Icon, label }) => (
+                <button
+                  key={id}
+                  onClick={() => setActiveTab(id)}
+                  className={`flex items-center px-4 py-2 rounded ${activeTab === id ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {label}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowPDF(true)}
+              className="flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Export PDF
+            </button>
           </div>
         </header>
 
@@ -182,7 +199,6 @@ const FormBuilder = () => {
                     onMouseDown={(e) => e.stopPropagation()}
                     onAuxClick={(e) => {
                       if (e.button === 1) {
-                        // Middle mouse button
                         e.preventDefault();
                         e.stopPropagation();
                         setSelectedElement(null);
@@ -215,7 +231,15 @@ const FormBuilder = () => {
               </ReactGridLayout>
             )}
 
-            {activeTab === "preview" && <FormPreview elements={elements} />}
+            {activeTab === "preview" && (
+              <FormPreview
+                elements={elements}
+                onValueChange={(id, value) => {
+                  setFormValues((prev) => ({ ...prev, [id]: value }));
+                }}
+                values={formValues}
+              />
+            )}
 
             {activeTab === "code" && (
               <CodeEditor
@@ -237,6 +261,13 @@ const FormBuilder = () => {
           </div>
         </div>
       </div>
+      {showPDF && (
+        <PDFExport
+          elements={elements}
+          formValues={formValues}
+          onClose={() => setShowPDF(false)}
+        />
+      )}
     </div>
   );
 };

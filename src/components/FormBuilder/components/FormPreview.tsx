@@ -4,9 +4,15 @@ import { PreviewElement } from "./PreviewElement";
 
 interface FormPreviewProps {
   elements: FormElement[];
+  onValueChange: (id: string, value: any) => void;
+  values: Record<string, any>;
 }
 
-export const FormPreview: React.FC<FormPreviewProps> = ({ elements }) => {
+export const FormPreview: React.FC<FormPreviewProps> = ({
+  elements,
+  onValueChange,
+  values,
+}) => {
   // Group elements by their y-coordinate
   const elementsByRow = [...elements].reduce(
     (acc, element) => {
@@ -45,7 +51,11 @@ export const FormPreview: React.FC<FormPreviewProps> = ({ elements }) => {
                       <span className="text-red-500 ml-1">*</span>
                     )}
                   </label>
-                  <PreviewElement element={element} />
+                  <PreviewElement
+                    element={element}
+                    value={values[element.i]}
+                    onChange={(value) => onValueChange(element.i, value)}
+                  />
                 </div>
               );
             })}
