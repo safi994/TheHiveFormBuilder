@@ -6,9 +6,12 @@ import {
   View,
   StyleSheet,
   PDFViewer,
+  PDFDownloadLink,
   Svg,
   Path,
 } from "@react-pdf/renderer";
+import { X, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { FormElement } from "../types";
 import config from "../config";
 
@@ -47,18 +50,35 @@ export const PDFExport: React.FC<PDFExportProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-      <div className="bg-white p-4 rounded-lg w-[800px] h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Form PDF Preview</h2>
+      <div className="bg-white rounded-xl w-[85vw] h-[85vh] flex flex-col shadow-2xl border">
+        <div className="flex justify-between items-center p-6 border-b">
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold">PDF Preview</h2>
+            <Button
+              onClick={() => {
+                // This is just a placeholder since PDFDownloadLink will handle the actual download
+                const link = document.createElement("a");
+                link.click();
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white flex items-center gap-2 transition-all"
+            >
+              <Download className="w-4 h-4" />
+              Download PDF
+            </Button>
+          </div>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
           >
-            Close
+            <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
-        <div className="flex-1">
-          <PDFViewer width="100%" height="100%" className="rounded">
+        <div className="flex-1 p-6 bg-gray-50 m-6 rounded-xl">
+          <PDFViewer
+            width="100%"
+            height="100%"
+            className="rounded-lg overflow-hidden"
+          >
             <Document>
               <Page size="A4" style={styles.page}>
                 <Text style={styles.title}>Form Details</Text>

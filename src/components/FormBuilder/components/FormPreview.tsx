@@ -32,7 +32,7 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
 
   return (
     <form className={config.styles.form.container}>
-      <h2 className={config.styles.form.title}>Form Preview</h2>
+      <h2 className={config.styles.form.title + " flex"}>Form Preview</h2>
       <div className={config.styles.form.grid}>
         {sortedRows.map((rowElements, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-12 gap-4">
