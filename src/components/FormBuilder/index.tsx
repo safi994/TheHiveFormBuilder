@@ -179,10 +179,15 @@ const FormBuilder: React.FC = () => {
         </div>
 
         {/* Main Grid Layout */}
-        <div className="grid grid-cols-12 gap-4">
+        <div
+          className="grid gap-4"
+          style={{ gridTemplateColumns: editorConfig.layout.gridTemplate }}
+        >
           {/* Element Palette */}
           <div
-            className={`col-span-${editorConfig.layout.columnSizes.palette}`}
+            style={{
+              gridColumn: `span ${editorConfig.layout.columnSizes.palette}`,
+            }}
           >
             <ElementPalette
               elementTypes={ELEMENT_TYPES}
@@ -192,7 +197,10 @@ const FormBuilder: React.FC = () => {
 
           {/* Canvas */}
           <div
-            className={`col-span-${editorConfig.layout.columnSizes.canvas} bg-white rounded-lg border min-h-[calc(100vh-8rem)] w-full`}
+            style={{
+              gridColumn: `span ${editorConfig.layout.columnSizes.canvas}`,
+            }}
+            className="bg-white rounded-lg border min-h-[calc(100vh-8rem)] w-full"
           >
             <div
               className="p-4 h-full"
@@ -289,7 +297,9 @@ const FormBuilder: React.FC = () => {
 
           {/* Property Panel */}
           <div
-            className={`col-span-${editorConfig.layout.columnSizes.properties}`}
+            style={{
+              gridColumn: `span ${editorConfig.layout.columnSizes.properties}`,
+            }}
           >
             {activeTab === "editor" &&
               (selectedElement ? (

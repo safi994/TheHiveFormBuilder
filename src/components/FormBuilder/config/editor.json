@@ -2,10 +2,11 @@
   "layout": {
     "maxWidth": "2500px",
     "columnSizes": {
-      "palette": 3,
-      "canvas": 6,
-      "properties": 3
-    }
+      "palette": "3fr",
+      "canvas": "6fr",
+      "properties": "3fr"
+    },
+    "gridTemplate": "3fr 6fr 3fr"
   },
   "tabs": [
     {
