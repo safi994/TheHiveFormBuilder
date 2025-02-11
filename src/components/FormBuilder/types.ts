@@ -20,6 +20,15 @@ export interface PropertyPanelProps {
   onUpdateProperty: (elementId: string, property: string, value: any) => void;
 }
 
-export interface PreviewElementProps {
+/**
+ * Common props interface for all form elements
+ */
+export interface FormElementProps {
   element: FormElement;
+  value?: any;
+  onChange?: (value: any) => void;
+  readOnly?: boolean;
+  isPreview?: boolean;
 }
+
+export interface PreviewElementProps extends FormElementProps {}
