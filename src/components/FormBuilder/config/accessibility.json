@@ -1,0 +1,28 @@
+{
+  "aria": {
+    "labels": {
+      "required": "Required field",
+      "optional": "Optional field",
+      "error": "Error in field",
+      "success": "Field validated successfully"
+    },
+    "descriptions": {
+      "dragHandle": "Drag to reorder",
+      "removeElement": "Remove element",
+      "addElement": "Add new element"
+    }
+  },
+  "keyboard": {
+    "shortcuts": {
+      "save": "Ctrl + S",
+      "preview": "Ctrl + P",
+      "undo": "Ctrl + Z",
+      "redo": "Ctrl + Y"
+    }
+  },
+  "focus": {
+    "outlineWidth": "2px",
+    "outlineColor": "rgb(59, 130, 246)",
+    "outlineOffset": "2px"
+  }
+}
