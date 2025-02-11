@@ -39,17 +39,13 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     );
   }
 
-  const commonProps = readOnly
-    ? {
-        value: value ?? properties.defaultValue ?? "",
-        disabled: true,
-      }
-    : {
-        defaultValue: properties.defaultValue ?? "",
-        onChange: onChange
-          ? (e: React.ChangeEvent<any>) => onChange(e.target.value)
-          : undefined,
-      };
+  const commonProps = {
+    value: value ?? properties.defaultValue ?? "",
+    disabled: readOnly,
+    onChange: onChange
+      ? (e: React.ChangeEvent<any>) => onChange(e.target.value)
+      : undefined,
+  };
 
   switch (element.type) {
     case "textarea":

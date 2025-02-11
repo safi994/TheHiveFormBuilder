@@ -1,0 +1,17 @@
+{
+  "gridLayout": {
+    "defaultRowHeight": 50,
+    "defaultGridWidth": 12,
+    "minElementWidth": 2,
+    "maxElementWidth": 12
+  },
+  "elementIds": {
+    "prefix": "element-"
+  },
+  "classNames": {
+    "selectedElement": "border-blue-500 ring-1 ring-blue-500",
+    "unselectedElement": "border-gray-200",
+    "elementHover": "hover:border-blue-200",
+    "dragHandle": "drag-handle"
+  }
+}

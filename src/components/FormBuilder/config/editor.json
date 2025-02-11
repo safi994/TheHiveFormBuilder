@@ -1,0 +1,48 @@
+{
+  "layout": {
+    "maxWidth": "2500px",
+    "columnSizes": {
+      "palette": 3,
+      "canvas": 6,
+      "properties": 3
+    }
+  },
+  "tabs": [
+    {
+      "id": "editor",
+      "label": "Editor",
+      "icon": "Settings",
+      "description": "Design and arrange form elements"
+    },
+    {
+      "id": "preview",
+      "label": "Preview",
+      "icon": "Eye",
+      "description": "Preview the form as it will appear to users"
+    },
+    {
+      "id": "code",
+      "label": "Code",
+      "icon": "Code",
+      "description": "View and edit form JSON structure"
+    }
+  ],
+  "emptyState": {
+    "message": "Drag elements here to build your form",
+    "className": "text-center py-8 text-gray-500 border-2 border-dashed rounded"
+  },
+  "buttons": {
+    "exportPDF": {
+      "label": "Export PDF",
+      "icon": "FileDown",
+      "className": "flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+    }
+  },
+  "propertyPanel": {
+    "emptyState": {
+      "className": "bg-white p-4 rounded-lg shadow-sm border sticky top-4",
+      "titleClassName": "text-lg font-semibold mb-4",
+      "messageClassName": "text-gray-500 text-sm"
+    }
+  }
+}

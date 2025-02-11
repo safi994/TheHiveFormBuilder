@@ -1,3 +1,15 @@
+/**
+ * FormBuilder Component
+ *
+ * A drag-and-drop form builder that allows users to create, customize, and export forms.
+ * Features include:
+ * - Drag & drop form elements
+ * - Real-time preview
+ * - JSON code editor
+ * - PDF export
+ * - Responsive grid layout
+ */
+
 import React, { useState } from "react";
 import RGL, { WidthProvider } from "react-grid-layout";
 import {
@@ -8,31 +20,54 @@ import {
   GripVertical,
   FileDown,
 } from "lucide-react";
+
+// Components
 import { ElementPalette } from "./components/ElementPalette";
 import { PropertyPanel } from "./components/PropertyPanel";
 import { PreviewElement } from "./components/PreviewElement";
 import { FormPreview } from "./components/FormPreview";
 import { CodeEditor } from "./components/CodeEditor";
 import { PDFExport } from "./components/PDFExport";
+
+// Hooks
+import { useFormElements } from "./hooks/useFormElements";
+import { useFormValues } from "./hooks/useFormValues";
+import { useCodeEditor } from "./hooks/useCodeEditor";
+
+// Utils & Constants
 import { ELEMENT_TYPES } from "./constants";
-import { FormElement } from "./types";
+import {
+  calculateGridPosition,
+  getElementClassNames,
+  generateElementId,
+} from "./utils/elementUtils";
 import config from "./config";
+import editorConfig from "./config/editor.json";
+import constants from "./config/constants.json";
 
 const ReactGridLayout = WidthProvider(RGL);
 
-const FormBuilder = () => {
-  const [elements, setElements] = useState<FormElement[]>([]);
-  const [activeTab, setActiveTab] = useState("editor");
-  const [selectedElement, setSelectedElement] = useState<FormElement | null>(
-    null,
-  );
-  const [draggedElement, setDraggedElement] =
-    useState<Partial<FormElement> | null>(null);
-  const [codeValue, setCodeValue] = useState("");
-  const [codeError, setCodeError] = useState("");
-  const [showPDF, setShowPDF] = useState(false);
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
+const FormBuilder: React.FC = () => {
+  // State management using custom hooks
+  const {
+    elements,
+    setElements,
+    selectedElement,
+    setSelectedElement,
+    draggedElement,
+    setDraggedElement,
+    addElement,
+    removeElement,
+    updateElementProperty,
+  } = useFormElements();
 
+  const { formValues, updateFormValue } = useFormValues();
+  const { codeValue, codeError, handleCodeChange } = useCodeEditor(setElements);
+
+  const [activeTab, setActiveTab] = useState("editor");
+  const [showPDF, setShowPDF] = useState(false);
+
+  // Event Handlers
   const handleBackgroundClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       setSelectedElement(null);
@@ -43,10 +78,8 @@ const FormBuilder = () => {
     const elementType = ELEMENT_TYPES.find((t) => t.id === type);
     if (!elementType) return;
 
-    const id = `element-${Date.now()}`;
     setDraggedElement({
-      id,
-      i: id,
+      id: generateElementId(),
       type,
       properties: JSON.parse(JSON.stringify(elementType.properties)),
     });
@@ -54,114 +87,113 @@ const FormBuilder = () => {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    if (draggedElement) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) / (rect.width / 12));
-      const y = Math.floor((e.clientY - rect.top) / 50);
+    if (!draggedElement) return;
 
-      const newElement = {
-        ...draggedElement,
-        i: draggedElement.id!,
-        x: Math.min(x, config.settings.defaultValues.elementWidth),
-        y,
-        w: config.settings.defaultValues.elementWidth,
-        h: config.settings.defaultValues.elementHeight,
-        type: draggedElement.type!,
-        properties: { ...draggedElement.properties! },
-      } as FormElement;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const { x, y } = calculateGridPosition(e, rect);
 
-      setElements([...elements, newElement]);
-      setDraggedElement(null);
-    }
+    const newElement = {
+      ...draggedElement,
+      i: draggedElement.id!,
+      x,
+      y,
+      w: config.settings.defaultValues.elementWidth,
+      h: config.settings.defaultValues.elementHeight,
+      type: draggedElement.type!,
+      properties: { ...draggedElement.properties! },
+    };
+
+    addElement(newElement);
+    setDraggedElement(null);
   };
 
-  const updateElementProperty = (
-    elementId: string,
-    property: string,
-    value: any,
-  ) => {
-    const newElements = elements.map((el) => {
-      if (el.i === elementId) {
-        return {
-          ...el,
-          properties: {
-            ...el.properties,
-            [property]: value,
-          },
-        };
-      }
-      return el;
-    });
-    setElements(newElements);
-    if (selectedElement?.i === elementId) {
-      const updatedElement = newElements.find((el) => el.i === elementId);
-      setSelectedElement(updatedElement || null);
-    }
+  // Render Helpers
+  const renderTabButton = ({ id, icon, label }) => {
+    const Icon = { Settings, Eye, Code }[icon];
+    return (
+      <button
+        key={id}
+        onClick={() => setActiveTab(id)}
+        className={`flex items-center px-3 py-1.5 rounded ${activeTab === id ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
+        title={editorConfig.tabs.find((tab) => tab.id === id)?.description}
+      >
+        <Icon className="w-4 h-4 mr-2" />
+        {label}
+      </button>
+    );
   };
 
-  const handleCodeChange = (value: string) => {
-    setCodeValue(value);
-    try {
-      const parsed = JSON.parse(value);
-      if (!Array.isArray(parsed)) {
-        setCodeError("Invalid format: Must be an array of form elements");
-        return;
-      }
-      setElements(parsed);
-      setCodeError("");
-    } catch (err) {
-      if (value.trim()) {
-        setCodeError("Invalid JSON format");
-      } else {
-        setCodeError("");
-      }
-    }
-  };
+  const renderGridElement = (element) => (
+    <div
+      key={element.i}
+      className={getElementClassNames(element, selectedElement?.i)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setSelectedElement(element);
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      <div className="flex items-center gap-2">
+        <GripVertical
+          className={`w-4 h-4 text-gray-400 ${constants.classNames.dragHandle} cursor-move`}
+        />
+        <span className="flex-grow text-sm">{element.properties.label}</span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeElement(element.i);
+          }}
+          className="text-gray-400 hover:text-red-500 transition-colors"
+          title="Remove element"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+      <div className="mt-2">
+        <PreviewElement element={element} readOnly={true} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div style={{ maxWidth: "2500px" }} className="p-4 mx-auto">
+      <div
+        style={{ maxWidth: editorConfig.layout.maxWidth }}
+        className="p-4 mx-auto"
+      >
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-xl font-semibold">Form Builder</h1>
           <div className="flex items-center gap-4">
             <div className="flex bg-gray-100 p-1 rounded-md">
-              {config.settings.editor.tabs.map(({ id, icon, label }) => {
-                const Icon = {
-                  Settings,
-                  Eye,
-                  Code,
-                }[icon];
-                return (
-                  <button
-                    key={id}
-                    onClick={() => setActiveTab(id)}
-                    className={`flex items-center px-3 py-1.5 rounded ${activeTab === id ? "bg-white shadow-sm" : "hover:bg-white/50"}`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {label}
-                  </button>
-                );
-              })}
+              {editorConfig.tabs.map(renderTabButton)}
             </div>
             <button
               onClick={() => setShowPDF(true)}
-              className="flex items-center px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+              className={editorConfig.buttons.exportPDF.className}
             >
               <FileDown className="w-4 h-4 mr-2" />
-              Export PDF
+              {editorConfig.buttons.exportPDF.label}
             </button>
           </div>
         </div>
 
+        {/* Main Grid Layout */}
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-3">
+          {/* Element Palette */}
+          <div
+            className={`col-span-${editorConfig.layout.columnSizes.palette}`}
+          >
             <ElementPalette
               elementTypes={ELEMENT_TYPES}
               onDragStart={handleDragStart}
             />
           </div>
 
-          <div className="col-span-6 bg-white rounded-lg border min-h-[calc(100vh-8rem)] w-full">
+          {/* Canvas */}
+          <div
+            className={`col-span-${editorConfig.layout.columnSizes.canvas} bg-white rounded-lg border min-h-[calc(100vh-8rem)] w-full`}
+          >
             <div
               className="p-4 h-full"
               onClick={handleBackgroundClick}
@@ -172,25 +204,25 @@ const FormBuilder = () => {
                 <ReactGridLayout
                   className="layout"
                   layout={elements}
-                  cols={config.layout.grid.cols}
-                  rowHeight={config.layout.grid.rowHeight}
+                  cols={constants.gridLayout.defaultGridWidth}
+                  rowHeight={constants.gridLayout.defaultRowHeight}
                   width={config.layout.grid.width}
                   onLayoutChange={(newLayout) => {
                     setElements(
-                      elements.map((el, i) => ({
-                        ...el,
-                        ...newLayout[i],
-                      })),
+                      elements.map((el, i) => ({ ...el, ...newLayout[i] })),
                     );
                   }}
                   isDraggable
                   isResizable
-                  draggableHandle=".drag-handle"
+                  draggableHandle={`.${constants.classNames.dragHandle}`}
                 >
                   {elements.map((element) => (
                     <div
                       key={element.i}
-                      className={`border p-3 rounded-md relative cursor-pointer hover:border-blue-200 transition-colors ${selectedElement?.i === element.i ? "border-blue-500 ring-1 ring-blue-500" : "border-gray-200"}`}
+                      className={getElementClassNames(
+                        element,
+                        selectedElement?.i,
+                      )}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElement(element);
@@ -198,27 +230,32 @@ const FormBuilder = () => {
                       onMouseDown={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center gap-2">
-                        <GripVertical className="w-4 h-4 text-gray-400 drag-handle cursor-move" />
+                        <GripVertical
+                          className={`w-4 h-4 text-gray-400 ${constants.classNames.dragHandle} cursor-move`}
+                        />
                         <span className="flex-grow text-sm">
                           {element.properties.label}
                         </span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setElements(
-                              elements.filter((el) => el.i !== element.i),
-                            );
-                            if (selectedElement?.i === element.i) {
-                              setSelectedElement(null);
-                            }
+                            removeElement(element.i);
                           }}
                           className="text-gray-400 hover:text-red-500 transition-colors"
+                          title="Remove element"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                       <div className="mt-2">
-                        <PreviewElement element={element} readOnly={true} />
+                        <PreviewElement
+                          element={element}
+                          readOnly={true}
+                          value={formValues[element.i]}
+                          onChange={(value) =>
+                            updateFormValue(element.i, value)
+                          }
+                        />
                       </div>
                     </div>
                   ))}
@@ -228,9 +265,7 @@ const FormBuilder = () => {
               {activeTab === "preview" && (
                 <FormPreview
                   elements={elements}
-                  onValueChange={(id, value) => {
-                    setFormValues((prev) => ({ ...prev, [id]: value }));
-                  }}
+                  onValueChange={updateFormValue}
                   values={formValues}
                 />
               )}
@@ -245,14 +280,17 @@ const FormBuilder = () => {
               )}
 
               {elements.length === 0 && activeTab === "editor" && (
-                <div className="text-center py-8 text-gray-500 border-2 border-dashed rounded">
-                  {config.settings.dragAndDrop.emptyStateMessage}
+                <div className={editorConfig.emptyState.className}>
+                  {editorConfig.emptyState.message}
                 </div>
               )}
             </div>
           </div>
 
-          <div className="col-span-3">
+          {/* Property Panel */}
+          <div
+            className={`col-span-${editorConfig.layout.columnSizes.properties}`}
+          >
             {activeTab === "editor" &&
               (selectedElement ? (
                 <PropertyPanel
@@ -260,11 +298,21 @@ const FormBuilder = () => {
                   onUpdateProperty={updateElementProperty}
                 />
               ) : (
-                <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
-                  <h3 className="text-lg font-semibold mb-4">
+                <div
+                  className={editorConfig.propertyPanel.emptyState.className}
+                >
+                  <h3
+                    className={
+                      editorConfig.propertyPanel.emptyState.titleClassName
+                    }
+                  >
                     {config.settings.propertyPanel.title}
                   </h3>
-                  <p className="text-gray-500 text-sm">
+                  <p
+                    className={
+                      editorConfig.propertyPanel.emptyState.messageClassName
+                    }
+                  >
                     {config.settings.propertyPanel.emptyStateMessage}
                   </p>
                 </div>
@@ -272,6 +320,8 @@ const FormBuilder = () => {
           </div>
         </div>
       </div>
+
+      {/* PDF Export Modal */}
       {showPDF && (
         <PDFExport
           elements={elements}
