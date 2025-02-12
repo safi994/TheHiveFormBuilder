@@ -27,12 +27,12 @@ export const getElementClassNames = (
   element: FormElement,
   selectedElementId: string | null,
 ) => {
-  const baseClasses =
-    "border p-3 rounded-md relative cursor-pointer transition-colors";
   const selectedClass =
     selectedElementId === element.i
       ? constants.classNames.selectedElement
       : constants.classNames.unselectedElement;
+  const hoverClass =
+    selectedElementId !== element.i ? constants.classNames.elementHover : "";
 
-  return `${baseClasses} ${selectedClass} ${constants.classNames.elementHover}`;
+  return `${constants.classNames.base} ${selectedClass} ${hoverClass}`;
 };

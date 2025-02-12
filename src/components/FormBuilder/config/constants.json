@@ -1,6 +1,6 @@
 {
   "gridLayout": {
-    "defaultRowHeight": 50,
+    "defaultRowHeight": 35,
     "defaultGridWidth": 12,
     "minElementWidth": 2,
     "maxElementWidth": 12
@@ -9,8 +9,9 @@
     "prefix": "element-"
   },
   "classNames": {
-    "selectedElement": "border-blue-500 ring-1 ring-blue-500",
-    "unselectedElement": "border-gray-200",
+    "base": "p-3 rounded-md relative cursor-pointer transition-all duration-200",
+    "selectedElement": "border-2 border-blue-500 ring-1 ring-blue-500",
+    "unselectedElement": "border border-gray-200",
     "elementHover": "hover:border-blue-200",
     "dragHandle": "drag-handle"
   }

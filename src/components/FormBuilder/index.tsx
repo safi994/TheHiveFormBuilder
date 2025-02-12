@@ -48,6 +48,19 @@ import constants from "./config/constants.json";
 const ReactGridLayout = WidthProvider(RGL);
 
 const FormBuilder: React.FC = () => {
+  // Add event listener for middle click anywhere on the page
+  React.useEffect(() => {
+    const handleGlobalMouseDown = (e: MouseEvent) => {
+      if (e.button === 1) {
+        // Middle mouse button
+        e.preventDefault();
+        setSelectedElement(null);
+      }
+    };
+
+    window.addEventListener("mousedown", handleGlobalMouseDown);
+    return () => window.removeEventListener("mousedown", handleGlobalMouseDown);
+  }, []);
   // State management using custom hooks
   const {
     elements,

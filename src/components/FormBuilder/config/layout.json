@@ -1,7 +1,7 @@
 {
   "grid": {
     "cols": 12,
-    "rowHeight": 50,
+    "rowHeight": 35,
     "width": 2000,
     "defaultElementWidth": 6,
     "defaultElementHeight": 2
