@@ -66,5 +66,79 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     return <div>Unsupported element type</div>;
   }
 
-  return <ElementComponent {...elementProps} />;
+  // Render label if it exists and element is not a spacer
+  const renderLabel = () => {
+    if (element.type === "spacer" || !isPreview) return null;
+
+    const labelProps = element.properties.label;
+    if (!labelProps) return null;
+
+    const labelText =
+      typeof labelProps === "object" ? labelProps.text : labelProps;
+    if (!labelText) return null;
+
+    const labelStyle =
+      typeof labelProps === "object"
+        ? {
+            ...(labelProps.preview || labelProps),
+            fontSize:
+              labelProps.preview?.fontSize || labelProps.fontSize || "14px",
+            color:
+              labelProps.preview?.textColor ||
+              labelProps.textColor ||
+              "#000000",
+            backgroundColor:
+              labelProps.preview?.backgroundColor ||
+              labelProps.backgroundColor ||
+              "transparent",
+            fontWeight:
+              labelProps.preview?.fontWeight ||
+              labelProps.fontWeight ||
+              "normal",
+            fontStyle:
+              labelProps.preview?.fontStyle || labelProps.fontStyle || "normal",
+            textDecoration:
+              labelProps.preview?.textDecoration ||
+              labelProps.textDecoration ||
+              "none",
+            lineHeight:
+              labelProps.preview?.lineHeight || labelProps.lineHeight || "1.5",
+            letterSpacing:
+              labelProps.preview?.letterSpacing ||
+              labelProps.letterSpacing ||
+              "normal",
+            padding: labelProps.preview?.padding || labelProps.padding || "0px",
+            display: "inline-block",
+            width: "100%",
+            textAlign:
+              labelProps.preview?.textAlign || labelProps.textAlign || "left",
+          }
+        : {};
+
+    return (
+      <div style={{ textAlign: element.properties.label?.textAlign || "left" }}>
+        <span
+          style={{
+            ...labelStyle,
+            display: "inline-block",
+            width: "100%",
+          }}
+        >
+          {labelText}
+          {element.properties.required && (
+            <span className="text-red-500 ml-1">*</span>
+          )}
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <div className="w-full">
+      {renderLabel()}
+      <div style={{ marginTop: `${element.properties.labelSpacing || 8}px` }}>
+        <ElementComponent {...elementProps} />
+      </div>
+    </div>
+  );
 };

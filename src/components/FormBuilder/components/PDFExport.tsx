@@ -79,6 +79,41 @@ export const PDFExport: React.FC<PDFExportProps> = ({
     return a.y - b.y;
   });
 
+  const getTextStyle = (textObj: any) => {
+    if (!textObj || typeof textObj !== "object") return {};
+
+    // Use print styles if available, otherwise fallback to regular styles
+    const styles = textObj.print || textObj;
+
+    // Convert pixel values to numbers and remove 'px' suffix
+    const fontSize = parseInt(styles.fontSize) || 14;
+    const padding = parseInt(styles.padding) || 0;
+    const lineHeight = parseFloat(styles.lineHeight) || 1.5;
+    const letterSpacing = parseInt(styles.letterSpacing) || 0;
+
+    return {
+      fontSize,
+      color: styles.textColor || "#000000",
+      backgroundColor:
+        styles.backgroundColor === "transparent"
+          ? undefined
+          : styles.backgroundColor,
+      fontWeight: styles.fontWeight || "normal",
+      fontStyle: styles.fontStyle || "normal",
+      textAlign: styles.textAlign || "left",
+      textDecoration:
+        styles.textDecoration === "none" ? undefined : styles.textDecoration,
+      lineHeight,
+      letterSpacing,
+      padding,
+    };
+  };
+
+  const getTextContent = (textObj: any) => {
+    if (!textObj) return "";
+    return typeof textObj === "object" ? textObj.text : textObj;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl w-[85vw] h-[85vh] flex flex-col shadow-2xl border">
@@ -133,256 +168,241 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                     )
                     .map((rowElements, rowIndex) => (
                       <View key={rowIndex} style={styles.row}>
-                        {rowElements.map((element) => (
-                          <View
-                            key={element.i}
-                            style={[
-                              styles.section,
-                              {
-                                width: `${(element.w / 12) * 100}%`,
-                                paddingRight: 8,
-                                height:
-                                  element.type === "spacer" &&
-                                  element.properties.showInPDF
-                                    ? element.properties.rows * 20
-                                    : undefined,
-                                padding:
-                                  element.type === "spacer" ? 0 : undefined,
-                                margin:
-                                  element.type === "spacer" ? 0 : undefined,
-                              },
-                            ]}
-                          >
-                            {element.type !== "spacer" && (
-                              <Text style={styles.label}>
-                                {element.properties.label}
-                                {element.properties.required && (
-                                  <Text style={styles.required}> *</Text>
-                                )}
-                              </Text>
-                            )}
-                            {(() => {
-                              if (element.type === "spacer") {
-                                return null;
-                              }
-                              const value = formValues[element.i];
-                              switch (element.type) {
-                                case "plainText":
-                                  return (
-                                    <View>
-                                      <Text
-                                        style={{
-                                          fontFamily: "Open Sans",
-                                          fontSize:
-                                            parseInt(
-                                              element.properties.fontSize,
-                                            ) || 16,
-                                          color:
-                                            element.properties.textColor ||
-                                            "#000000",
-                                          backgroundColor:
-                                            element.properties
-                                              .backgroundColor || "transparent",
-                                          fontWeight:
-                                            element.properties.fontWeight ===
-                                            "bold"
-                                              ? 700
-                                              : 400,
-                                          fontStyle:
-                                            element.properties.fontStyle ===
-                                            "italic"
-                                              ? "italic"
-                                              : "normal",
-                                          textAlign: (element.properties
-                                            .textAlign || "left") as any,
-                                          textDecoration:
-                                            element.properties
-                                              .textDecoration === "underline"
-                                              ? "underline"
-                                              : "none",
-                                          lineHeight:
-                                            parseFloat(
-                                              element.properties.lineHeight,
-                                            ) || 1.5,
-                                          letterSpacing:
-                                            parseFloat(
-                                              element.properties.letterSpacing,
-                                            ) || 0,
-                                        }}
-                                      >
-                                        {value ||
-                                          element.properties.defaultText ||
-                                          ""}
-                                      </Text>
-                                    </View>
-                                  );
-                                case "textarea":
-                                  return (
-                                    <View style={styles.input}>
-                                      <Text selectable>{value || ""}</Text>
-                                    </View>
-                                  );
-                                case "date":
-                                  return (
-                                    <View style={styles.input}>
-                                      <Text selectable>
-                                        {value
-                                          ? new Date(value)
-                                              .toLocaleDateString("en-GB", {
-                                                day: "2-digit",
-                                                month: "2-digit",
-                                                year: "numeric",
-                                              })
-                                              .replace(/\//g, "/")
-                                          : "dd/mm/yyyy"}
-                                      </Text>
-                                    </View>
-                                  );
-                                case "time":
-                                  return (
-                                    <View style={styles.input}>
-                                      <Text selectable>{value || ""}</Text>
-                                    </View>
-                                  );
-                                case "file":
-                                  return (
-                                    <View style={styles.input}>
-                                      <Text selectable>
-                                        {value?.name || "No file selected"}
-                                      </Text>
-                                    </View>
-                                  );
-                                case "toggle":
-                                  return (
-                                    <View
-                                      style={{
-                                        flexDirection: "row",
-                                        gap: 8,
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <Text style={{ fontSize: 12 }}>
-                                        {element.properties.leftLabel || ""}
-                                      </Text>
-                                      <View
-                                        style={{
-                                          borderWidth: 1,
-                                          borderColor: value
-                                            ? "#bfdbfe"
-                                            : "#fecaca",
-                                          borderRadius: 4,
-                                          padding: "2 4",
-                                        }}
-                                      >
+                        {rowElements.map((element) =>
+                          !element.properties.showInPDF ? null : (
+                            <View
+                              key={element.i}
+                              style={[
+                                styles.section,
+                                {
+                                  width: `${(element.w / 12) * 100}%`,
+                                  paddingRight: 8,
+                                  height:
+                                    element.type === "spacer" &&
+                                    element.properties.showInPDF
+                                      ? element.properties.rows * 20
+                                      : undefined,
+                                  padding:
+                                    element.type === "spacer" ? 0 : undefined,
+                                  margin:
+                                    element.type === "spacer" ? 0 : undefined,
+                                },
+                              ]}
+                            >
+                              {element.type !== "spacer" && (
+                                <View
+                                  style={{
+                                    marginBottom:
+                                      element.properties.labelSpacingPDF || 8,
+                                  }}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.label,
+                                      getTextStyle(element.properties.label),
+                                    ]}
+                                  >
+                                    {getTextContent(element.properties.label)}
+                                    {element.properties.required && (
+                                      <Text style={styles.required}> *</Text>
+                                    )}
+                                  </Text>
+                                </View>
+                              )}
+                              {(() => {
+                                if (element.type === "spacer") {
+                                  return null;
+                                }
+                                const value = formValues[element.i];
+                                switch (element.type) {
+                                  case "plainText":
+                                    return (
+                                      <View>
                                         <Text
-                                          style={{
-                                            fontSize: 10,
-                                            color: value
-                                              ? "#2563eb"
-                                              : "#dc2626",
-                                          }}
+                                          style={[
+                                            styles.defaultText,
+                                            getTextStyle(
+                                              element.properties.defaultText,
+                                            ),
+                                          ]}
                                         >
-                                          {value ? "ON" : "OFF"}
+                                          {getTextContent(
+                                            value ||
+                                              element.properties.defaultText,
+                                          )}
                                         </Text>
                                       </View>
-                                      <Text style={{ fontSize: 12 }}>
-                                        {element.properties.rightLabel || ""}
-                                      </Text>
-                                    </View>
-                                  );
-                                case "checkbox":
-                                  return (
-                                    <View style={{ gap: 4 }}>
-                                      {(Array.isArray(
-                                        element.properties.options,
-                                      ) && element.properties.options.length > 0
-                                        ? element.properties.options
-                                        : [element.properties.label]
-                                      ).map((option, index) => (
+                                    );
+                                  case "textarea":
+                                    return (
+                                      <View style={styles.input}>
+                                        <Text selectable>{value || ""}</Text>
+                                      </View>
+                                    );
+                                  case "date":
+                                    return (
+                                      <View style={styles.input}>
+                                        <Text selectable>
+                                          {value
+                                            ? new Date(value)
+                                                .toLocaleDateString("en-GB", {
+                                                  day: "2-digit",
+                                                  month: "2-digit",
+                                                  year: "numeric",
+                                                })
+                                                .replace(/\//g, "/")
+                                            : "dd/mm/yyyy"}
+                                        </Text>
+                                      </View>
+                                    );
+                                  case "time":
+                                    return (
+                                      <View style={styles.input}>
+                                        <Text selectable>{value || ""}</Text>
+                                      </View>
+                                    );
+                                  case "file":
+                                    return (
+                                      <View style={styles.input}>
+                                        <Text selectable>
+                                          {value?.name || "No file selected"}
+                                        </Text>
+                                      </View>
+                                    );
+                                  case "toggle":
+                                    return (
+                                      <View
+                                        style={{
+                                          flexDirection: "row",
+                                          gap: 8,
+                                          alignItems: "center",
+                                        }}
+                                      >
+                                        <Text style={{ fontSize: 12 }}>
+                                          {element.properties.leftLabel || ""}
+                                        </Text>
                                         <View
-                                          key={index}
-                                          style={styles.checkboxContainer}
+                                          style={{
+                                            borderWidth: 1,
+                                            borderColor: value
+                                              ? "#bfdbfe"
+                                              : "#fecaca",
+                                            borderRadius: 4,
+                                            padding: "2 4",
+                                          }}
                                         >
-                                          <View style={styles.checkbox}>
-                                            {(Array.isArray(value)
-                                              ? value[index]
-                                              : index === 0 && value) && (
-                                              <Svg
-                                                width="10"
-                                                height="10"
-                                                viewBox="0 0 24 24"
-                                              >
-                                                <Path
-                                                  d="M20 6L9 17L4 12"
-                                                  stroke="#000"
-                                                  strokeWidth="2"
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  fill="none"
-                                                />
-                                              </Svg>
-                                            )}
-                                          </View>
-                                          <Text style={{ fontSize: 12 }}>
-                                            {option}
-                                          </Text>
-                                        </View>
-                                      ))}
-                                    </View>
-                                  );
-                                case "select":
-                                  return (
-                                    <View style={styles.select}>
-                                      <Text selectable>{value || ""}</Text>
-                                    </View>
-                                  );
-                                case "radio":
-                                  return (
-                                    <View style={{ gap: 4 }}>
-                                      {(Array.isArray(
-                                        element.properties.options,
-                                      ) && element.properties.options.length > 0
-                                        ? element.properties.options
-                                        : [element.properties.label]
-                                      ).map((option, index) => (
-                                        <View
-                                          key={index}
-                                          style={styles.checkboxContainer}
-                                        >
-                                          <View
-                                            style={[
-                                              styles.checkbox,
-                                              { borderRadius: 6 },
-                                            ]}
+                                          <Text
+                                            style={{
+                                              fontSize: 10,
+                                              color: value
+                                                ? "#2563eb"
+                                                : "#dc2626",
+                                            }}
                                           >
-                                            {value === option && (
-                                              <View
-                                                style={{
-                                                  width: 6,
-                                                  height: 6,
-                                                  borderRadius: 3,
-                                                  backgroundColor: "#000",
-                                                }}
-                                              />
-                                            )}
-                                          </View>
-                                          <Text style={{ fontSize: 12 }}>
-                                            {option}
+                                            {value ? "ON" : "OFF"}
                                           </Text>
                                         </View>
-                                      ))}
-                                    </View>
-                                  );
-                                default:
-                                  return (
-                                    <View style={styles.input}>
-                                      <Text selectable>{value || ""}</Text>
-                                    </View>
-                                  );
-                              }
-                            })()}
-                          </View>
-                        ))}
+                                        <Text style={{ fontSize: 12 }}>
+                                          {element.properties.rightLabel || ""}
+                                        </Text>
+                                      </View>
+                                    );
+                                  case "checkbox":
+                                    return (
+                                      <View style={{ gap: 4 }}>
+                                        {(Array.isArray(
+                                          element.properties.options,
+                                        ) &&
+                                        element.properties.options.length > 0
+                                          ? element.properties.options
+                                          : [element.properties.label]
+                                        ).map((option, index) => (
+                                          <View
+                                            key={index}
+                                            style={styles.checkboxContainer}
+                                          >
+                                            <View style={styles.checkbox}>
+                                              {(Array.isArray(value)
+                                                ? value[index]
+                                                : index === 0 && value) && (
+                                                <Svg
+                                                  width="10"
+                                                  height="10"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <Path
+                                                    d="M20 6L9 17L4 12"
+                                                    stroke="#000"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    fill="none"
+                                                  />
+                                                </Svg>
+                                              )}
+                                            </View>
+                                            <Text style={{ fontSize: 12 }}>
+                                              {getTextContent(option)}
+                                            </Text>
+                                          </View>
+                                        ))}
+                                      </View>
+                                    );
+                                  case "select":
+                                    return (
+                                      <View style={styles.select}>
+                                        <Text selectable>{value || ""}</Text>
+                                      </View>
+                                    );
+                                  case "radio":
+                                    return (
+                                      <View style={{ gap: 4 }}>
+                                        {(Array.isArray(
+                                          element.properties.options,
+                                        ) &&
+                                        element.properties.options.length > 0
+                                          ? element.properties.options
+                                          : [element.properties.label]
+                                        ).map((option, index) => (
+                                          <View
+                                            key={index}
+                                            style={styles.checkboxContainer}
+                                          >
+                                            <View
+                                              style={[
+                                                styles.checkbox,
+                                                { borderRadius: 6 },
+                                              ]}
+                                            >
+                                              {value === option && (
+                                                <View
+                                                  style={{
+                                                    width: 6,
+                                                    height: 6,
+                                                    borderRadius: 3,
+                                                    backgroundColor: "#000",
+                                                  }}
+                                                />
+                                              )}
+                                            </View>
+                                            <Text style={{ fontSize: 12 }}>
+                                              {getTextContent(option)}
+                                            </Text>
+                                          </View>
+                                        ))}
+                                      </View>
+                                    );
+                                  default:
+                                    return (
+                                      <View style={styles.input}>
+                                        <Text selectable>{value || ""}</Text>
+                                      </View>
+                                    );
+                                }
+                              })()}
+                            </View>
+                          ),
+                        )}
                       </View>
                     ));
                 })()}

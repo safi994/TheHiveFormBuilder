@@ -10,42 +10,45 @@ export const PlainText: React.FC<FormElementProps> = ({
 }) => {
   const { properties } = element;
 
-  const textStyles = {
-    fontSize: properties.fontSize,
-    color: properties.textColor,
-    backgroundColor: properties.backgroundColor,
-    fontWeight: properties.fontWeight,
-    fontStyle: properties.fontStyle,
-    textAlign: properties.textAlign as "left" | "center" | "right" | "justify",
-    textDecoration: properties.textDecoration,
-    lineHeight: properties.lineHeight,
-    letterSpacing: properties.letterSpacing,
-    padding: properties.padding,
-  };
+  const textContent = React.useMemo(() => {
+    if (value) return value;
+    if (!properties.defaultText) return "";
+    return typeof properties.defaultText === "object"
+      ? properties.defaultText.text
+      : properties.defaultText;
+  }, [value, properties.defaultText]);
 
-  if (readOnly) {
-    return (
-      <div
-        className={cn("w-full break-words", properties.className)}
-        style={textStyles}
-      >
-        {value || properties.defaultText}
-      </div>
-    );
-  }
+  const textStyles = React.useMemo(() => {
+    const defaultText = properties.defaultText;
+    if (!defaultText || typeof defaultText !== "object") return {};
+
+    // Use preview styles by default
+    const styles = defaultText.preview || defaultText;
+
+    return {
+      fontSize: styles.fontSize || "16px",
+      color: styles.textColor || "#000000",
+      backgroundColor: styles.backgroundColor || "transparent",
+      fontWeight: styles.fontWeight || "normal",
+      fontStyle: styles.fontStyle || "normal",
+      textAlign: (styles.textAlign || "left") as
+        | "left"
+        | "center"
+        | "right"
+        | "justify",
+      textDecoration: styles.textDecoration || "none",
+      lineHeight: styles.lineHeight || "1.5",
+      letterSpacing: styles.letterSpacing || "normal",
+      padding: styles.padding || "0px",
+    };
+  }, [properties]);
 
   return (
     <div
-      contentEditable={!readOnly}
-      onBlur={(e) => onChange?.(e.target.textContent)}
-      className={cn(
-        "w-full break-words outline-none focus:ring-2 focus:ring-blue-500 rounded",
-        properties.className,
-      )}
+      className={cn("w-full break-words", properties.className)}
       style={textStyles}
-      suppressContentEditableWarning
     >
-      {value || properties.defaultText}
+      {textContent}
     </div>
   );
 };

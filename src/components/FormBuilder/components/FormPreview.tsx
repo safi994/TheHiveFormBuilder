@@ -30,14 +30,40 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
     .sort(([rowA], [rowB]) => Number(rowA) - Number(rowB))
     .map(([_, rowElements]) => rowElements.sort((a, b) => a.x - b.x));
 
+  const renderFormTitle = () => {
+    const titleElement = elements.find(
+      (el) => el.type === "plainText" && el.properties.isTitle,
+    );
+    if (titleElement) {
+      const titleText = titleElement.properties.defaultText;
+      const titleContent =
+        typeof titleText === "object" ? titleText.text : titleText;
+      const titleStyle =
+        typeof titleText === "object"
+          ? {
+              ...(titleText.preview || titleText),
+              fontSize: "24px",
+              fontWeight: "bold",
+            }
+          : {};
+      return (
+        <h2 className={config.styles.form.title} style={titleStyle}>
+          {titleContent}
+        </h2>
+      );
+    }
+    return <h2 className={config.styles.form.title}>Form Preview</h2>;
+  };
+
   return (
     <form className={config.styles.form.container}>
-      <h2 className={config.styles.form.title + " flex"}>Form Preview</h2>
+      {renderFormTitle()}
       <div className={config.styles.form.grid}>
         {sortedRows.map((rowElements, rowIndex) => (
           <div key={rowIndex} className="grid grid-cols-12 gap-4">
             {rowElements.map((element) => {
               const colSpan = Math.min(element.w, 12);
+              if (!element.properties.showInPreview) return null;
               return (
                 <div
                   key={element.i}
@@ -46,14 +72,6 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
                   }}
                   className="w-full"
                 >
-                  {element.type !== "spacer" && (
-                    <label className="block text-sm font-medium mb-2">
-                      {element.properties.label}
-                      {element.properties.required && (
-                        <span className="text-red-500 ml-1">*</span>
-                      )}
-                    </label>
-                  )}
                   <PreviewElement
                     element={element}
                     value={values[element.i]}
@@ -67,10 +85,7 @@ export const FormPreview: React.FC<FormPreviewProps> = ({
         ))}
       </div>
       <div className="mt-8">
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
-        >
+        <button type="submit" className={config.styles.form.submitButton}>
           Submit
         </button>
       </div>

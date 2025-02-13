@@ -24,35 +24,40 @@ export const CheckboxGroup: React.FC<FormElementProps> = ({
     <div className="space-y-2">
       {(Array.isArray(properties.options) && properties.options.length > 0
         ? properties.options
-        : [properties.label]
-      ).map((option, index) => (
-        <div key={index} className="flex items-center space-x-2">
-          <Checkbox
-            id={`${element.i}-${index}`}
-            checked={
-              Array.isArray(value) ? value[index] : index === 0 ? value : false
-            }
-            onCheckedChange={
-              !readOnly && onChange
-                ? (checked) => {
-                    const newValues = Array.isArray(value)
-                      ? [...(value || [])]
-                      : [];
-                    newValues[index] = checked;
-                    onChange(newValues);
-                  }
-                : undefined
-            }
-            disabled={readOnly}
-          />
-          <label
-            htmlFor={`${element.i}-${index}`}
-            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {option}
-          </label>
-        </div>
-      ))}
+        : [{ text: properties.label?.text || "Option", key: "option-1" }]
+      ).map((option, index) => {
+        const optionText = typeof option === "object" ? option.text : option;
+        const optionKey = typeof option === "object" ? option.key : option;
+        return (
+          <div key={index} className="flex items-center space-x-2">
+            <Checkbox
+              id={`${element.i}-${index}`}
+              checked={
+                Array.isArray(value) ? value[index] : index === 0 && value
+              }
+              onCheckedChange={
+                !readOnly && onChange
+                  ? (checked) => {
+                      const newValues = Array.isArray(value)
+                        ? [...(value || [])]
+                        : [];
+                      newValues[index] = checked;
+                      onChange(newValues);
+                    }
+                  : undefined
+              }
+              disabled={readOnly}
+            />
+            <label
+              htmlFor={`${element.i}-${index}`}
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none"
+            >
+              {optionText}
+            </label>
+          </div>
+        );
+      })}
     </div>
   );
 };

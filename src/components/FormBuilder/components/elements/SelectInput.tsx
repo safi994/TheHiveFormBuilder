@@ -37,11 +37,16 @@ export const SelectInput: React.FC<FormElementProps> = ({
       </SelectTrigger>
       <SelectContent>
         {Array.isArray(properties.options) &&
-          properties.options.map((option: string, i: number) => (
-            <SelectItem key={i} value={option}>
-              {option}
-            </SelectItem>
-          ))}
+          properties.options.map((option: any, i: number) => {
+            const optionText =
+              typeof option === "object" ? option.text : option;
+            const optionKey = typeof option === "object" ? option.key : option;
+            return (
+              <SelectItem key={i} value={optionText}>
+                {optionText}
+              </SelectItem>
+            );
+          })}
       </SelectContent>
     </Select>
   );

@@ -31,18 +31,23 @@ export const RadioGroup: React.FC<FormElementProps> = ({
     >
       {(Array.isArray(properties.options) && properties.options.length > 0
         ? properties.options
-        : [properties.label]
-      ).map((option, index) => (
-        <div key={index} className="flex items-center space-x-2">
-          <RadioGroupItem value={option} id={`${element.i}-${index}`} />
-          <label
-            htmlFor={`${element.i}-${index}`}
-            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {option}
-          </label>
-        </div>
-      ))}
+        : [{ text: properties.label?.text || "Option", key: "option-1" }]
+      ).map((option, index) => {
+        const optionText = typeof option === "object" ? option.text : option;
+        const optionKey = typeof option === "object" ? option.key : option;
+        return (
+          <div key={index} className="flex items-center space-x-2">
+            <RadioGroupItem value={optionText} id={`${element.i}-${index}`} />
+            <label
+              htmlFor={`${element.i}-${index}`}
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none"
+            >
+              {optionText}
+            </label>
+          </div>
+        );
+      })}
     </RadixRadioGroup>
   );
 };

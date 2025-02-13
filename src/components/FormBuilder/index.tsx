@@ -136,37 +136,9 @@ const FormBuilder: React.FC = () => {
     );
   };
 
-  const renderGridElement = (element) => (
-    <div
-      key={element.i}
-      className={getElementClassNames(element, selectedElement?.i)}
-      onClick={(e) => {
-        e.stopPropagation();
-        setSelectedElement(element);
-      }}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      <div className="flex items-center gap-2">
-        <GripVertical
-          className={`w-4 h-4 text-gray-400 ${constants.classNames.dragHandle} cursor-move`}
-        />
-        <span className="flex-grow text-sm">{element.properties.label}</span>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            removeElement(element.i);
-          }}
-          className="text-gray-400 hover:text-red-500 transition-colors"
-          title="Remove element"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
-      </div>
-      <div className="mt-2">
-        <PreviewElement element={element} readOnly={true} />
-      </div>
-    </div>
-  );
+  const renderElementLabel = (element) => {
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -247,25 +219,23 @@ const FormBuilder: React.FC = () => {
                       }}
                       onMouseDown={(e) => e.stopPropagation()}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <GripVertical
                           className={`w-4 h-4 text-gray-400 ${constants.classNames.dragHandle} cursor-move`}
                         />
-                        <span className="flex-grow text-sm">
-                          {element.properties.label}
-                        </span>
+                        {renderElementLabel(element)}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeElement(element.i);
                           }}
-                          className="text-gray-400 hover:text-red-500 transition-colors"
+                          className="text-gray-400 hover:text-red-500 transition-colors ml-auto"
                           title="Remove element"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="mt-2">
+                      <div>
                         <PreviewElement
                           element={element}
                           readOnly={true}
@@ -273,6 +243,7 @@ const FormBuilder: React.FC = () => {
                           onChange={(value) =>
                             updateFormValue(element.i, value)
                           }
+                          isPreview={true}
                         />
                       </div>
                     </div>

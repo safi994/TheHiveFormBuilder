@@ -39,11 +39,25 @@ export const useFormElements = () => {
     property: string,
     value: any,
   ) => {
-    updateElement(elementId, {
-      properties: {
-        ...elements.find((el) => el.i === elementId)?.properties,
-        [property]: value,
-      },
+    setElements((prevElements) => {
+      const newElements = prevElements.map((el) => {
+        if (el.i === elementId) {
+          const updatedElement = {
+            ...el,
+            properties: {
+              ...el.properties,
+              [property]: value,
+            },
+          };
+          // Update selected element if this is the one being modified
+          if (selectedElement?.i === elementId) {
+            setSelectedElement(updatedElement);
+          }
+          return updatedElement;
+        }
+        return el;
+      });
+      return newElements;
     });
   };
 
