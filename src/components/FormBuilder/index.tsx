@@ -240,10 +240,7 @@ const FormBuilder: React.FC = () => {
                   {elements.map((element) => (
                     <div
                       key={element.i}
-                      className={getElementClassNames(
-                        element,
-                        selectedElement?.i,
-                      )}
+                      className={`${constants.classNames.base} ${selectedElement?.i === element.i ? "border-2 border-blue-500 ring-2 ring-blue-500/20" : "border border-gray-200 hover:border-blue-200"}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedElement(element);

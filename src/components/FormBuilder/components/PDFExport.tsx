@@ -172,6 +172,44 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                                       </Text>
                                     </View>
                                   );
+                                case "toggle":
+                                  return (
+                                    <View
+                                      style={{
+                                        flexDirection: "row",
+                                        gap: 8,
+                                        alignItems: "center",
+                                      }}
+                                    >
+                                      <Text style={{ fontSize: 12 }}>
+                                        {element.properties.leftLabel || ""}
+                                      </Text>
+                                      <View
+                                        style={{
+                                          borderWidth: 1,
+                                          borderColor: value
+                                            ? "#bfdbfe"
+                                            : "#fecaca",
+                                          borderRadius: 4,
+                                          padding: "2 4",
+                                        }}
+                                      >
+                                        <Text
+                                          style={{
+                                            fontSize: 10,
+                                            color: value
+                                              ? "#2563eb"
+                                              : "#dc2626",
+                                          }}
+                                        >
+                                          {value ? "ON" : "OFF"}
+                                        </Text>
+                                      </View>
+                                      <Text style={{ fontSize: 12 }}>
+                                        {element.properties.rightLabel || ""}
+                                      </Text>
+                                    </View>
+                                  );
                                 case "checkbox":
                                   return (
                                     <View style={{ gap: 4 }}>

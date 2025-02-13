@@ -16,6 +16,7 @@ import {
   Calendar,
   Clock,
   FileUp,
+  ToggleLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -57,6 +58,8 @@ const getIconForType = (type: string) => {
       return <Clock className="w-4 h-4" />;
     case "file":
       return <FileUp className="w-4 h-4" />;
+    case "toggle":
+      return <ToggleLeft className="w-4 h-4" />;
     default:
       return <Type className="w-4 h-4" />;
   }

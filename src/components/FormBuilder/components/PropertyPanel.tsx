@@ -1,5 +1,6 @@
 import React from "react";
 import { PropertyPanelProps } from "../types";
+import { Switch } from "@/components/ui/switch";
 import config from "../config";
 
 export const PropertyPanel: React.FC<PropertyPanelProps> = ({
@@ -30,16 +31,12 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
             );
           } else {
             return (
-              <input
-                type="checkbox"
+              <Switch
                 checked={value}
-                onChange={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onUpdateProperty(element.i, key, e.target.checked);
+                onCheckedChange={(checked) => {
+                  onUpdateProperty(element.i, key, checked);
                 }}
-                onClick={(e) => e.stopPropagation()}
-                className="ml-2"
+                className="mt-1"
               />
             );
           }
@@ -48,17 +45,14 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
       case "required":
       case "multiple":
       case "defaultChecked":
+      case "showIndicators":
         return (
-          <input
-            type="checkbox"
+          <Switch
             checked={value || false}
-            onChange={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onUpdateProperty(element.i, key, e.target.checked);
+            onCheckedChange={(checked) => {
+              onUpdateProperty(element.i, key, checked);
             }}
-            onClick={(e) => e.stopPropagation()}
-            className="ml-2"
+            className="mt-1"
           />
         );
       case "options":
