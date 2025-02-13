@@ -9,3 +9,4 @@ export * from "./FileInput";
 export * from "./NumberInput";
 export * from "./Spacer";
 export * from "./ToggleSwitch";
+export * from "./PlainText";

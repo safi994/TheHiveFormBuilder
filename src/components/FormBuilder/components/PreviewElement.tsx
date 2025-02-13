@@ -12,6 +12,7 @@ import {
   NumberInput,
   Spacer,
   ToggleSwitch,
+  PlainText,
 } from "./elements";
 
 /**
@@ -44,6 +45,7 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
 
   // Map element types to their corresponding components
   const elementComponents = {
+    plainText: PlainText,
     toggle: ToggleSwitch,
     spacer: Spacer,
     text: TextInput,
