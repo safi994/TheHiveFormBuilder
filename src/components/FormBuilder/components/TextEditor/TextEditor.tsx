@@ -187,12 +187,21 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Font Size</label>
-                  <Input
-                    type="text"
-                    value={currentProperties[mode].fontSize}
-                    onChange={(e) => updateProperty("fontSize", e.target.value)}
-                    placeholder="e.g. 16px"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="8"
+                      max="72"
+                      value={parseInt(currentProperties[mode].fontSize) || ""}
+                      onChange={(e) =>
+                        updateProperty("fontSize", `${e.target.value}px`)
+                      }
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                      px
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -275,36 +284,65 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Line Height</label>
-                  <Input
-                    type="text"
-                    value={currentProperties[mode].lineHeight}
-                    onChange={(e) =>
-                      updateProperty("lineHeight", e.target.value)
-                    }
-                    placeholder="e.g. 1.5"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="0.5"
+                      max="3"
+                      step="0.1"
+                      value={
+                        parseFloat(currentProperties[mode].lineHeight) || ""
+                      }
+                      onChange={(e) =>
+                        updateProperty("lineHeight", e.target.value)
+                      }
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                      ×
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Letter Spacing</label>
-                  <Input
-                    type="text"
-                    value={currentProperties[mode].letterSpacing}
-                    onChange={(e) =>
-                      updateProperty("letterSpacing", e.target.value)
-                    }
-                    placeholder="e.g. 1px"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="-2"
+                      max="10"
+                      step="0.5"
+                      value={
+                        parseFloat(currentProperties[mode].letterSpacing) || ""
+                      }
+                      onChange={(e) =>
+                        updateProperty("letterSpacing", `${e.target.value}px`)
+                      }
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                      px
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Padding</label>
-                  <Input
-                    type="text"
-                    value={currentProperties[mode].padding}
-                    onChange={(e) => updateProperty("padding", e.target.value)}
-                    placeholder="e.g. 8px"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      min="0"
+                      max="32"
+                      value={parseInt(currentProperties[mode].padding) || ""}
+                      onChange={(e) =>
+                        updateProperty("padding", `${e.target.value}px`)
+                      }
+                      className="pr-8"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
+                      px
+                    </span>
+                  </div>
                 </div>
               </div>
             </TabsContent>
