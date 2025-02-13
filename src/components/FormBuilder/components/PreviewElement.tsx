@@ -13,6 +13,7 @@ import {
   Spacer,
   ToggleSwitch,
   PlainText,
+  ImageUpload,
 } from "./elements";
 
 /**
@@ -57,6 +58,14 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     date: DateInput,
     time: TimeInput,
     file: FileInput,
+    image: ImageUpload,
+    pageBreak: () => (
+      <div className="w-full flex items-center gap-4">
+        <div className="flex-1 h-px bg-gray-300" />
+        <span className="text-gray-500 font-bold">Page Break</span>
+        <div className="flex-1 h-px bg-gray-300" />
+      </div>
+    ),
   };
 
   // Get the appropriate component based on element type

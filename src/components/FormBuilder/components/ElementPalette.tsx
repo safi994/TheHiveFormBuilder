@@ -2,7 +2,7 @@ import React, { useState, memo } from "react";
 import { ElementType } from "../types";
 import config from "../config";
 import {
-  Type,
+  TextCursor,
   Hash,
   Minus,
   ListChecks,
@@ -17,8 +17,10 @@ import {
   Clock,
   FileUp,
   ToggleLeft,
+  Text,
+  ImagePlus,
+  SeparatorHorizontal,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +43,9 @@ const getIconForType = (type: string) => {
     case "spacer":
       return <Minus className="w-4 h-4" />;
     case "text":
-      return <Type className="w-4 h-4" />;
+      return <TextCursor className="w-4 h-4" />;
+    case "plainText":
+      return <Text className="w-4 h-4" />;
     case "textarea":
       return <MessageSquare className="w-4 h-4" />;
     case "number":
@@ -60,8 +64,12 @@ const getIconForType = (type: string) => {
       return <FileUp className="w-4 h-4" />;
     case "toggle":
       return <ToggleLeft className="w-4 h-4" />;
+    case "image":
+      return <ImagePlus className="w-4 h-4" />;
+    case "pageBreak":
+      return <SeparatorHorizontal className="w-4 h-4" />;
     default:
-      return <Type className="w-4 h-4" />;
+      return <TextCursor className="w-4 h-4" />;
   }
 };
 
@@ -101,6 +109,12 @@ const ElementPalette = memo(
   ({ elementTypes, onDragStart }: ElementPaletteProps) => {
     const [activeTab, setActiveTab] = useState("basic");
 
+    const filteredElements = elementTypes.filter((type) => {
+      if (activeTab === "basic") return !type.advanced;
+      if (activeTab === "advanced") return type.advanced;
+      return false;
+    });
+
     return (
       <div className="bg-white p-4 rounded-lg shadow-sm border sticky top-4">
         <h2 className="text-lg font-semibold mb-4">
@@ -115,12 +129,7 @@ const ElementPalette = memo(
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={cn(
-                "flex-1 px-3 py-1.5 text-sm rounded flex items-center justify-center gap-2 transition-all",
-                activeTab === id
-                  ? "bg-white shadow-sm text-blue-600"
-                  : "hover:bg-white/50 text-gray-600 hover:text-gray-900",
-              )}
+              className={`flex-1 px-3 py-1.5 text-sm rounded flex items-center justify-center gap-2 transition-all ${activeTab === id ? "bg-white shadow-sm text-blue-600" : "hover:bg-white/50 text-gray-600 hover:text-gray-900"}`}
             >
               <Icon className="w-4 h-4" />
               {label}
@@ -128,19 +137,13 @@ const ElementPalette = memo(
           ))}
         </div>
 
-        {activeTab === "basic" && (
-          <div className="space-y-2">
-            {elementTypes.map((type) => (
-              <ElementCard
-                key={type.id}
-                type={type}
-                onDragStart={onDragStart}
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-2">
+          {filteredElements.map((type) => (
+            <ElementCard key={type.id} type={type} onDragStart={onDragStart} />
+          ))}
+        </div>
 
-        {(activeTab === "advanced" || activeTab === "complex") && (
+        {activeTab === "complex" && (
           <div className="p-8 text-center text-sm text-gray-500 border-2 border-dashed rounded-md">
             <div className="flex flex-col items-center gap-2">
               <Sparkles className="w-6 h-6 text-gray-400" />

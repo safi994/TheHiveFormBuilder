@@ -10,3 +10,4 @@ export * from "./NumberInput";
 export * from "./Spacer";
 export * from "./ToggleSwitch";
 export * from "./PlainText";
+export * from "./ImageUpload";

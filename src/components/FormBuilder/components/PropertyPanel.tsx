@@ -5,11 +5,75 @@ import { X } from "lucide-react";
 import config from "../config";
 import { TextEditor } from "./TextEditor/TextEditor";
 
-export const PropertyPanel: React.FC<PropertyPanelProps> = ({
-  element,
-  onUpdateProperty,
-}) => {
+export const PropertyPanel: React.FC<
+  PropertyPanelProps & {
+    onFormValueChange: (elementId: string, value: any) => void;
+  }
+> = ({ element, onUpdateProperty, onFormValueChange }) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size
+    if (
+      element.properties.maxSize &&
+      file.size > element.properties.maxSize * 1024 * 1024
+    ) {
+      alert(`Image size must be less than ${element.properties.maxSize}MB`);
+      return;
+    }
+
+    // Create object URL for preview
+    const url = URL.createObjectURL(file);
+    const imageData = { file, url };
+    // Update both the form value and the property
+    onFormValueChange(element.i, imageData);
+    onUpdateProperty(element.i, "image", imageData);
+  };
+
   const renderPropertyInput = (key: string, value: any) => {
+    // Special handling for image upload
+    if (element.type === "image" && key === "image") {
+      return (
+        <div className="space-y-4">
+          {value?.url && (
+            <img
+              src={value.url}
+              alt="Preview"
+              className="w-full h-auto rounded-lg"
+              style={{ maxHeight: "200px", objectFit: "contain" }}
+            />
+          )}
+          <div className="flex gap-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="property-image-upload"
+            />
+            <label
+              htmlFor="property-image-upload"
+              className="flex-1 px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer"
+            >
+              Upload Image
+            </label>
+            {value?.url && (
+              <button
+                onClick={() => {
+                  onFormValueChange(element.i, null);
+                  onUpdateProperty(element.i, "image", null);
+                }}
+                className="px-4 py-2 bg-destructive text-destructive-foreground hover:bg-destructive/90 inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     // Special handling for text editor fields (plainText defaultText and labels)
     if (
       (element.type === "plainText" && key === "defaultText") ||

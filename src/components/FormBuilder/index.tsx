@@ -61,6 +61,7 @@ const FormBuilder: React.FC = () => {
     window.addEventListener("mousedown", handleGlobalMouseDown);
     return () => window.removeEventListener("mousedown", handleGlobalMouseDown);
   }, []);
+
   // State management using custom hooks
   const {
     elements,
@@ -96,6 +97,10 @@ const FormBuilder: React.FC = () => {
       type,
       properties: JSON.parse(JSON.stringify(elementType.properties)),
     });
+  };
+
+  const handleFormValueChange = (elementId: string, value: any) => {
+    updateFormValue(elementId, value);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -142,12 +147,11 @@ const FormBuilder: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div
-        style={{ maxWidth: editorConfig.layout.maxWidth }}
-        className="p-4 mx-auto"
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+      <div className="sticky top-0 z-10 bg-gray-50 border-b">
+        <div
+          className="flex justify-between items-center p-4"
+          style={{ maxWidth: editorConfig.layout.maxWidth, margin: "0 auto" }}
+        >
           <h1 className="text-xl font-semibold">Form Builder</h1>
           <div className="flex items-center gap-4">
             <div className="flex bg-gray-100 p-1 rounded-md">
@@ -162,7 +166,12 @@ const FormBuilder: React.FC = () => {
             </button>
           </div>
         </div>
+      </div>
 
+      <div
+        style={{ maxWidth: editorConfig.layout.maxWidth }}
+        className="p-4 mx-auto"
+      >
         {/* Main Grid Layout */}
         <div
           className="grid gap-4"
@@ -172,6 +181,10 @@ const FormBuilder: React.FC = () => {
           <div
             style={{
               gridColumn: `span ${editorConfig.layout.columnSizes.palette}`,
+              position: "sticky",
+              top: "80px",
+              height: "calc(100vh - 100px)",
+              overflowY: "auto",
             }}
           >
             <ElementPalette
@@ -202,7 +215,21 @@ const FormBuilder: React.FC = () => {
                   width={config.layout.grid.width}
                   onLayoutChange={(newLayout) => {
                     setElements(
-                      elements.map((el, i) => ({ ...el, ...newLayout[i] })),
+                      elements.map((el, i) => {
+                        const updatedLayout = newLayout[i];
+                        // For image elements, enforce minimum height of 140px
+                        if (el.type === "image") {
+                          const minHeightInRows = Math.ceil(
+                            140 / constants.gridLayout.defaultRowHeight,
+                          );
+                          return {
+                            ...el,
+                            ...updatedLayout,
+                            h: Math.max(updatedLayout.h, minHeightInRows),
+                          };
+                        }
+                        return { ...el, ...updatedLayout };
+                      }),
                     );
                   }}
                   isDraggable
@@ -269,8 +296,11 @@ const FormBuilder: React.FC = () => {
               )}
 
               {elements.length === 0 && activeTab === "editor" && (
-                <div className={editorConfig.emptyState.className}>
-                  {editorConfig.emptyState.message}
+                <div className="h-[calc(100vh-12rem)] flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl mx-8">
+                  <GripVertical className="w-12 h-12 text-gray-300 mb-4" />
+                  <p className="text-gray-500 text-lg">
+                    {editorConfig.emptyState.message}
+                  </p>
                 </div>
               )}
             </div>
@@ -280,6 +310,10 @@ const FormBuilder: React.FC = () => {
           <div
             style={{
               gridColumn: `span ${editorConfig.layout.columnSizes.properties}`,
+              position: "sticky",
+              top: "80px",
+              height: "calc(100vh - 100px)",
+              overflowY: "auto",
             }}
           >
             {activeTab === "editor" &&
@@ -287,6 +321,7 @@ const FormBuilder: React.FC = () => {
                 <PropertyPanel
                   element={selectedElement}
                   onUpdateProperty={updateElementProperty}
+                  onFormValueChange={handleFormValueChange}
                 />
               ) : (
                 <div
