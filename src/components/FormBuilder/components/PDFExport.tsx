@@ -9,13 +9,44 @@ import {
   PDFDownloadLink,
   Svg,
   Path,
+  Font,
 } from "@react-pdf/renderer";
+
+// Register fonts
+Font.register({
+  family: "Open Sans",
+  fonts: [
+    {
+      src: "https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf",
+    },
+    {
+      src: "https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-600.ttf",
+      fontWeight: 600,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700.ttf",
+      fontWeight: 700,
+    },
+    {
+      src: "https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-italic.ttf",
+      fontStyle: "italic",
+    },
+    {
+      src: "https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700italic.ttf",
+      fontWeight: 700,
+      fontStyle: "italic",
+    },
+  ],
+});
 import { X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FormElement } from "../types";
 import config from "../config";
 
 const styles = StyleSheet.create({
+  defaultText: {
+    fontFamily: "Open Sans",
+  },
   ...config.pdf.styles,
   checkbox: {
     ...config.pdf.styles.elements.checkbox,
@@ -136,6 +167,55 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                               }
                               const value = formValues[element.i];
                               switch (element.type) {
+                                case "plainText":
+                                  return (
+                                    <View>
+                                      <Text
+                                        style={{
+                                          fontFamily: "Open Sans",
+                                          fontSize:
+                                            parseInt(
+                                              element.properties.fontSize,
+                                            ) || 16,
+                                          color:
+                                            element.properties.textColor ||
+                                            "#000000",
+                                          backgroundColor:
+                                            element.properties
+                                              .backgroundColor || "transparent",
+                                          fontWeight:
+                                            element.properties.fontWeight ===
+                                            "bold"
+                                              ? 700
+                                              : 400,
+                                          fontStyle:
+                                            element.properties.fontStyle ===
+                                            "italic"
+                                              ? "italic"
+                                              : "normal",
+                                          textAlign: (element.properties
+                                            .textAlign || "left") as any,
+                                          textDecoration:
+                                            element.properties
+                                              .textDecoration === "underline"
+                                              ? "underline"
+                                              : "none",
+                                          lineHeight:
+                                            parseFloat(
+                                              element.properties.lineHeight,
+                                            ) || 1.5,
+                                          letterSpacing:
+                                            parseFloat(
+                                              element.properties.letterSpacing,
+                                            ) || 0,
+                                        }}
+                                      >
+                                        {value ||
+                                          element.properties.defaultText ||
+                                          ""}
+                                      </Text>
+                                    </View>
+                                  );
                                 case "textarea":
                                   return (
                                     <View style={styles.input}>
