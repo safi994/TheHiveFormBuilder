@@ -147,7 +147,6 @@ export const PDFExport: React.FC<PDFExportProps> = ({
           >
             <Document>
               <Page size="A4" style={styles.page}>
-                <Text style={styles.title}>Form Details</Text>
                 {(() => {
                   // Group elements by their y-coordinate
                   const elementsByRow = sortedElements.reduce(
@@ -363,33 +362,39 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                                         element.properties.options.length > 0
                                           ? element.properties.options
                                           : [element.properties.label]
-                                        ).map((option, index) => (
-                                          <View
-                                            key={index}
-                                            style={styles.checkboxContainer}
-                                          >
+                                        ).map((option, index) => {
+                                          const optionText =
+                                            typeof option === "object"
+                                              ? option.text
+                                              : option;
+                                          return (
                                             <View
-                                              style={[
-                                                styles.checkbox,
-                                                { borderRadius: 6 },
-                                              ]}
+                                              key={index}
+                                              style={styles.checkboxContainer}
                                             >
-                                              {value === option && (
-                                                <View
-                                                  style={{
-                                                    width: 6,
-                                                    height: 6,
-                                                    borderRadius: 3,
-                                                    backgroundColor: "#000",
-                                                  }}
-                                                />
-                                              )}
+                                              <View
+                                                style={[
+                                                  styles.checkbox,
+                                                  { borderRadius: 6 },
+                                                ]}
+                                              >
+                                                {value === optionText && (
+                                                  <View
+                                                    style={{
+                                                      width: 6,
+                                                      height: 6,
+                                                      borderRadius: 3,
+                                                      backgroundColor: "#000",
+                                                    }}
+                                                  />
+                                                )}
+                                              </View>
+                                              <Text style={{ fontSize: 12 }}>
+                                                {optionText}
+                                              </Text>
                                             </View>
-                                            <Text style={{ fontSize: 12 }}>
-                                              {getTextContent(option)}
-                                            </Text>
-                                          </View>
-                                        ))}
+                                          );
+                                        })}
                                       </View>
                                     );
                                   default:
