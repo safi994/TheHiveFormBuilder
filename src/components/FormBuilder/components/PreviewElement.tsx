@@ -14,6 +14,7 @@ import {
   ToggleSwitch,
   PlainText,
   ImageUpload,
+  Table,
 } from "./elements";
 
 /**
@@ -59,6 +60,7 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     time: TimeInput,
     file: FileInput,
     image: ImageUpload,
+    table: Table,
     pageBreak: () => (
       <div className="w-full flex items-center gap-4">
         <div className="flex-1 h-px bg-gray-300" />
@@ -72,7 +74,25 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
   const ElementComponent = elementComponents[element.type];
 
   if (!ElementComponent) {
-    return <div>Unsupported element type</div>;
+    return (
+      <div className="flex items-center justify-center w-full h-full min-h-[40px] text-gray-400">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect width="18" height="18" x="3" y="3" rx="2" />
+          <path d="M3 9h18" />
+          <path d="M9 21V9" />
+        </svg>
+      </div>
+    );
   }
 
   // Render label if it exists and element is not a spacer

@@ -28,4 +28,22 @@ dist-ssr
 **/tempobook/dynamic/
 **/tempobook/storyboards/
 
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build files
+dist/
+build/
+.next/
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 core

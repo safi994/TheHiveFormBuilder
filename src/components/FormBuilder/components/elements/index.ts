@@ -11,3 +11,4 @@ export * from "./Spacer";
 export * from "./ToggleSwitch";
 export * from "./PlainText";
 export * from "./ImageUpload";
+export * from "./Table";
