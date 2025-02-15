@@ -162,6 +162,11 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     );
   };
 
+  // For plain text elements, don't show label since the text is the content itself
+  if (element.type === "plainText") {
+    return <ElementComponent {...elementProps} />;
+  }
+
   return (
     <div className="w-full">
       {renderLabel()}

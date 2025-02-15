@@ -633,10 +633,60 @@ export const PropertyPanel: React.FC<
                         );
                         if (!elementType) return;
 
+                        // Calculate default cell size based on remaining space
+                        const [row] = selectedCell.split("-").map(Number);
+                        const rowCells = Array.from({
+                          length: element.properties.columns || 1,
+                        }).map((_, col) => `${row}-${col}`);
+                        const rowCellsWithSize = rowCells.filter(
+                          (key) => element.properties.cells?.[key]?.style?.size,
+                        );
+                        const totalExplicitSize = rowCellsWithSize.reduce(
+                          (sum, key) =>
+                            sum +
+                            (element.properties.cells[key]?.style?.size || 0),
+                          0,
+                        );
+                        const remainingCells =
+                          rowCells.length - rowCellsWithSize.length;
+                        const defaultSize = Math.max(
+                          1,
+                          remainingCells > 0
+                            ? Math.floor(
+                                ((12 - totalExplicitSize) / remainingCells) *
+                                  100,
+                              ) / 100
+                            : Math.floor(
+                                (12 / (element.properties.columns || 1)) * 100,
+                              ) / 100,
+                        );
+
                         const newElement = {
                           i: `${element.i}-${selectedCell}`,
                           type: elementType.id,
-                          properties: { ...elementType.properties },
+                          properties: {
+                            ...elementType.properties,
+                            labelSpacing: 8,
+                            labelSpacingPDF: 1,
+                            showInPreview: true,
+                            showInPDF: true,
+                            label: {
+                              text: elementType.label,
+                              fontSize: "14px",
+                              textColor: "#000000",
+                              backgroundColor: "transparent",
+                              fontWeight: "normal",
+                              fontStyle: "normal",
+                              textAlign: "left",
+                              textDecoration: "none",
+                              lineHeight: "1.5",
+                              letterSpacing: "normal",
+                              padding: "0px",
+                            },
+                          },
+                          style: {
+                            size: defaultSize,
+                          },
                         };
 
                         onUpdateProperty(element.i, "cells", {

@@ -1,4 +1,21 @@
 import React from "react";
+import { FormElement } from "../types";
+import {
+  Document,
+  Page,
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  PDFViewer,
+} from "@react-pdf/renderer";
+import config from "../config";
+
+interface PDFExportProps {
+  elements: FormElement[];
+  formValues: Record<string, any>;
+  onClose: () => void;
+}
 
 // Helper function to check if a cell should be skipped (part of colspan)
 const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
@@ -18,23 +35,6 @@ const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
 
   return false;
 };
-import { FormElement } from "../types";
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  PDFViewer,
-} from "@react-pdf/renderer";
-import config from "../config";
-
-interface PDFExportProps {
-  elements: FormElement[];
-  formValues: Record<string, any>;
-  onClose: () => void;
-}
 
 export const PDFExport: React.FC<PDFExportProps> = ({
   elements,
@@ -449,17 +449,8 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                         >
                           {cell && (
                             <>
-                              {renderLabel(cell)}
-                              <View
-                                style={{
-                                  marginTop:
-                                    cell.properties.labelSpacingPDF ||
-                                    cell.properties.labelSpacing ||
-                                    8,
-                                }}
-                              >
-                                {renderElementContent(cell, value?.[cellKey])}
-                              </View>
+                              {cell.type !== "plainText" && renderLabel(cell)}
+                              {renderElementContent(cell, value?.[cellKey])}
                             </>
                           )}
                         </View>
@@ -530,10 +521,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                                 {renderLabel(element)}
                                 <View
                                   style={{
-                                    marginTop:
-                                      element.properties.labelSpacingPDF ||
-                                      element.properties.labelSpacing ||
-                                      8,
+                                    marginTop: 8,
                                   }}
                                 >
                                   {renderElementContent(

@@ -35,23 +35,50 @@ export const Table: React.FC<FormElementProps> = ({
             const rowCells = Array.from({ length: columns }).map(
               (_, col) => `${rowIndex}-${col}`,
             );
-            const rowCellsWithSize = rowCells.filter(
-              (key) =>
-                cells[key]?.style?.size && !isSkippedCell(key, cells, columns),
-            );
-            const totalExplicitSize = rowCellsWithSize.reduce(
-              (sum, key) => sum + (cells[key]?.style?.size || 0),
-              0,
-            );
-            const remainingSpace = 12 - totalExplicitSize;
-            const remainingCells = rowCells.filter(
-              (key) =>
-                !cells[key]?.style?.size && !isSkippedCell(key, cells, columns),
-            ).length;
-            const defaultSize =
-              remainingCells > 0
-                ? remainingSpace / remainingCells
-                : 12 / columns;
+
+            // Find the largest cell in the row
+            const cellSizes = rowCells
+              .filter((key) => !isSkippedCell(key, cells, columns))
+              .map((key) => ({
+                key,
+                size: cells[key]?.style?.size || 0,
+              }))
+              .sort((a, b) => b.size - a.size);
+
+            const largestCell = cellSizes[0];
+
+            // For new cells or cells with invalid sizes, take space from the largest cell
+            rowCells.forEach((cellKey) => {
+              if (
+                !isSkippedCell(cellKey, cells, columns) &&
+                (!cells[cellKey]?.style?.size ||
+                  cells[cellKey]?.style?.size <= 0)
+              ) {
+                if (!cells[cellKey]) cells[cellKey] = { style: {} };
+
+                // If we have a largest cell to take from
+                if (largestCell && largestCell.size > 2) {
+                  const sizeToTake =
+                    Math.floor((largestCell.size / 2) * 100) / 100;
+                  cells[cellKey].style = {
+                    ...cells[cellKey].style,
+                    size: sizeToTake,
+                  };
+                  cells[largestCell.key].style.size =
+                    Math.floor((largestCell.size - sizeToTake) * 100) / 100;
+                } else {
+                  // Fallback to equal distribution if no large cell available
+                  const defaultSize = Math.max(
+                    1,
+                    Math.floor((12 / columns) * 100) / 100,
+                  );
+                  cells[cellKey].style = {
+                    ...cells[cellKey].style,
+                    size: defaultSize,
+                  };
+                }
+              }
+            });
 
             return (
               <tr key={rowIndex}>
@@ -67,7 +94,7 @@ export const Table: React.FC<FormElementProps> = ({
                   const colspan = colspanRight + colspanLeft + 1;
 
                   // Get cell size (explicit or calculated)
-                  const cellSize = cells[cellKey]?.style?.size || defaultSize;
+                  const cellSize = cells[cellKey]?.style?.size || 12 / columns;
 
                   return (
                     <td
