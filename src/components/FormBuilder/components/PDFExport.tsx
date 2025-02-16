@@ -44,44 +44,188 @@ export const PDFExport: React.FC<PDFExportProps> = ({
   const styles = StyleSheet.create({
     page: {
       backgroundColor: config.pdf.styles.page.backgroundColor,
-      padding: config.pdf.styles.page.padding,
+      padding:
+        typeof config.pdf.styles.page.padding === "string"
+          ? parseFloat(config.pdf.styles.page.padding)
+          : config.pdf.styles.page.padding,
       color: config.pdf.styles.page.color,
-      maxWidth: config.pdf.styles.page.maxWidth,
+      maxWidth:
+        typeof config.pdf.styles.page.maxWidth === "string"
+          ? parseFloat(config.pdf.styles.page.maxWidth)
+          : config.pdf.styles.page.maxWidth,
     },
     title: {
-      fontSize: config.pdf.styles.title.fontSize,
-      marginBottom: config.pdf.styles.title.marginBottom,
-      fontWeight: config.pdf.styles.title.fontWeight,
+      fontSize:
+        typeof config.pdf.styles.title.fontSize === "string"
+          ? parseFloat(config.pdf.styles.title.fontSize)
+          : config.pdf.styles.title.fontSize,
+      marginBottom:
+        typeof config.pdf.styles.title.marginBottom === "string"
+          ? parseFloat(config.pdf.styles.title.marginBottom)
+          : config.pdf.styles.title.marginBottom,
+      fontWeight: config.pdf.styles.title.fontWeight as
+        | "normal"
+        | "bold"
+        | "medium"
+        | "thin"
+        | "hairline"
+        | "ultralight"
+        | "extralight"
+        | "light"
+        | "semibold"
+        | "demibold"
+        | "ultrabold"
+        | "extrabold"
+        | "heavy"
+        | "black",
       color: config.pdf.styles.title.color,
-      textAlign: config.pdf.styles.title.textAlign,
+      textAlign: config.pdf.styles.title.textAlign as
+        | "left"
+        | "center"
+        | "right"
+        | "justify",
     },
     row: {
-      flexDirection: config.pdf.styles.row.flexDirection,
-      marginBottom: config.pdf.styles.row.marginBottom,
-      width: config.pdf.styles.row.width,
-      gap: config.pdf.styles.row.gap,
+      flexDirection: config.pdf.styles.row.flexDirection as
+        | "row"
+        | "row-reverse"
+        | "column"
+        | "column-reverse",
+      marginBottom:
+        typeof config.pdf.styles.row.marginBottom === "string"
+          ? parseFloat(config.pdf.styles.row.marginBottom)
+          : config.pdf.styles.row.marginBottom,
+      width:
+        typeof config.pdf.styles.row.width === "string"
+          ? parseFloat(config.pdf.styles.row.width)
+          : config.pdf.styles.row.width,
+      gap:
+        typeof config.pdf.styles.row.gap === "string"
+          ? parseFloat(config.pdf.styles.row.gap)
+          : config.pdf.styles.row.gap,
     },
     section: {
-      padding: config.pdf.styles.section.padding,
-      marginRight: config.pdf.styles.section.marginRight,
-      marginBottom: config.pdf.styles.section.marginBottom,
-      marginLeft: config.pdf.styles.section.marginLeft,
+      padding:
+        typeof config.pdf.styles.section.padding === "string"
+          ? parseFloat(config.pdf.styles.section.padding)
+          : config.pdf.styles.section.padding,
+      marginRight:
+        typeof config.pdf.styles.section.marginRight === "string"
+          ? parseFloat(config.pdf.styles.section.marginRight)
+          : config.pdf.styles.section.marginRight,
+      marginBottom:
+        typeof config.pdf.styles.section.marginBottom === "string"
+          ? parseFloat(config.pdf.styles.section.marginBottom)
+          : config.pdf.styles.section.marginBottom,
+      marginLeft:
+        typeof config.pdf.styles.section.marginLeft === "string"
+          ? parseFloat(config.pdf.styles.section.marginLeft)
+          : config.pdf.styles.section.marginLeft,
     },
     label: {
-      fontSize: config.pdf.styles.label.fontSize,
-      marginBottom: config.pdf.styles.label.marginBottom,
+      fontSize:
+        typeof config.pdf.styles.label.fontSize === "string"
+          ? parseFloat(config.pdf.styles.label.fontSize)
+          : config.pdf.styles.label.fontSize,
+      marginBottom:
+        typeof config.pdf.styles.label.marginBottom === "string"
+          ? parseFloat(config.pdf.styles.label.marginBottom)
+          : config.pdf.styles.label.marginBottom,
       color: config.pdf.styles.label.color,
-      fontWeight: config.pdf.styles.label.fontWeight,
-      lineHeight: config.pdf.styles.label.lineHeight,
+      fontWeight: config.pdf.styles.label.fontWeight as
+        | "normal"
+        | "bold"
+        | "medium"
+        | "thin"
+        | "hairline"
+        | "ultralight"
+        | "extralight"
+        | "light"
+        | "semibold"
+        | "demibold"
+        | "ultrabold"
+        | "extrabold"
+        | "heavy"
+        | "black",
+      lineHeight:
+        typeof config.pdf.styles.label.lineHeight === "string"
+          ? parseFloat(config.pdf.styles.label.lineHeight)
+          : config.pdf.styles.label.lineHeight,
     },
     value: {
-      fontSize: config.pdf.styles.value.fontSize,
+      fontSize:
+        typeof config.pdf.styles.value.fontSize === "string"
+          ? parseFloat(config.pdf.styles.value.fontSize)
+          : config.pdf.styles.value.fontSize,
       color: config.pdf.styles.value.color,
     },
     required: {
       color: config.pdf.styles.required.color,
     },
   });
+
+  // Add helper functions after styles declaration
+  const mapFontWeight = (
+    weight: string | number,
+  ):
+    | number
+    | "normal"
+    | "bold"
+    | "medium"
+    | "thin"
+    | "hairline"
+    | "ultralight"
+    | "extralight"
+    | "light"
+    | "semibold"
+    | "demibold"
+    | "ultrabold"
+    | "extrabold"
+    | "heavy"
+    | "black" => {
+    if (typeof weight === "number") return weight;
+    switch (weight) {
+      case "normal":
+      case "bold":
+      case "medium":
+      case "thin":
+      case "hairline":
+      case "ultralight":
+      case "extralight":
+      case "light":
+      case "semibold":
+      case "demibold":
+      case "ultrabold":
+      case "extrabold":
+      case "heavy":
+      case "black":
+        return weight;
+      case "bolder":
+        return 800;
+      case "lighter":
+        return 300;
+      default:
+        return "normal";
+    }
+  };
+
+  const mapFontStyle = (style: string): "normal" | "italic" => {
+    return style === "oblique" || style === "italic" ? "italic" : "normal";
+  };
+
+  const getFontFamily = (weight: string, style: string): string => {
+    const normalizedWeight = weight.toLowerCase();
+    const normalizedStyle = style.toLowerCase();
+    if (normalizedWeight === "bold" && normalizedStyle === "italic") {
+      return "Helvetica-BoldOblique";
+    } else if (normalizedWeight === "bold") {
+      return "Helvetica-Bold";
+    } else if (normalizedStyle === "italic") {
+      return "Helvetica-Oblique";
+    } else {
+      return "Helvetica";
+    }
+  };
 
   const renderLabel = (element: FormElement) => {
     if (!element?.properties?.label) return null;
@@ -147,40 +291,137 @@ export const PDFExport: React.FC<PDFExportProps> = ({
     if (element?.properties?.showInPDF === false) return null;
 
     switch (element.type) {
+      case "date":
+      case "time": {
+        const pdfInputBorderColor =
+          element.properties.inputBorderColorPDF || "#d1d5db";
+        const pdfInputBorderRadius =
+          typeof element.properties.inputBorderRadiusPDF === "number"
+            ? element.properties.inputBorderRadiusPDF
+            : 4;
+        const pdfInputTextAlign =
+          element.properties.inputTextAlignPDF || "left";
+        const pdfInputFontSize = element.properties.inputFontSizePDF || 14;
+        const pdfInputFontStyle =
+          element.properties.inputFontStylePDF || "normal";
+        const pdfInputFontWeight =
+          element.properties.inputFontWeightPDF || "normal";
+        const pdfInputFontColor =
+          element.properties.inputFontColorPDF || "#000000";
+        const pdfInputBorderStyle =
+          element.properties.inputBorderStylePDF || "solid";
+        const pdfInputHeight = element.properties.inputHeightPDF || 40;
+        const pdfInputBorderWidth = element.properties.inputBorderWidthPDF || 1;
+        const iconSize = 16;
+        let iconSrc = "";
+        if (element.type === "date") {
+          // Calendar icon (base64 encoded SVG)
+          iconSrc =
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iMyIgeT0iNCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcng9IjIiIC8+PGxpbmUgeDE9IjE2IiB5MT0iMiIgeDI9IjE2IiB5Mj0iNiIgLz48bGluZSB4MT0iOCIgeTE9IjIiIHgyPSI4IiB5Mj0iNiIgLz48bGluZSB4MT0iMyIgeTE9IjEwIiB4Mj0iMjEiIHkyPSIxMCIgLz48L3N2Zz4=";
+        } else if (element.type === "time") {
+          // Clock icon (base64 encoded SVG)
+          iconSrc =
+            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIC8+PHBvbHlsaW5lIHBvaW50cz0iMTIgNiAxMiAxMiAxNiAxNCIgLz48L3N2Zz4=";
+        }
+        let displayValue = value || "";
+        if (element.type === "date" && value) {
+          const dateObj = new Date(value);
+          if (!isNaN(dateObj.getTime())) {
+            const day = ("0" + dateObj.getDate()).slice(-2);
+            const month = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+            const year = dateObj.getFullYear();
+            displayValue = `${day}/${month}/${year}`;
+          }
+        }
+        return (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: 4,
+              minHeight: pdfInputHeight,
+              borderWidth: pdfInputBorderWidth,
+              borderColor: pdfInputBorderColor,
+              borderStyle: pdfInputBorderStyle,
+              borderRadius: pdfInputBorderRadius,
+            }}
+          >
+            <Text
+              style={{
+                ...styles.value,
+                flex: 1,
+                textAlign: pdfInputTextAlign,
+                fontSize: pdfInputFontSize + "px",
+                fontFamily: getFontFamily(
+                  pdfInputFontWeight,
+                  pdfInputFontStyle,
+                ),
+                color: pdfInputFontColor,
+              }}
+            >
+              {displayValue}
+            </Text>
+            {iconSrc && (
+              <Image
+                src={iconSrc}
+                style={{ width: iconSize, height: iconSize, marginLeft: 4 }}
+              />
+            )}
+          </View>
+        );
+      }
       case "text":
       case "textarea":
       case "number":
-      case "date":
-      case "time":
+      case "select": {
+        const pdfInputBorderColor =
+          element.properties.inputBorderColorPDF || "#d1d5db";
+        const pdfInputBorderRadius =
+          typeof element.properties.inputBorderRadiusPDF === "number"
+            ? element.properties.inputBorderRadiusPDF
+            : 4;
+        const pdfInputTextAlign =
+          element.properties.inputTextAlignPDF || "left";
+        const pdfInputFontSize = element.properties.inputFontSizePDF || 14;
+        const pdfInputFontStyle =
+          element.properties.inputFontStylePDF || "normal";
+        const pdfInputFontWeight =
+          element.properties.inputFontWeightPDF || "normal";
+        const pdfInputFontColor =
+          element.properties.inputFontColorPDF || "#000000";
+        const pdfInputBorderStyle =
+          element.properties.inputBorderStylePDF || "solid";
+        const pdfInputHeight = element.properties.inputHeightPDF || 40;
+        const pdfInputBorderWidth = element.properties.inputBorderWidthPDF || 1;
         return (
           <View
             style={{
               padding: 4,
-              minHeight: 24,
-              borderWidth: 1,
-              borderColor: "#d1d5db",
-              borderStyle: "solid",
-              borderRadius: 4,
+              minHeight: pdfInputHeight,
+              borderWidth: pdfInputBorderWidth,
+              borderColor: pdfInputBorderColor,
+              borderStyle: pdfInputBorderStyle,
+              borderRadius: pdfInputBorderRadius,
             }}
           >
-            <Text style={styles.value}>{value || ""}</Text>
+            <Text
+              style={{
+                ...styles.value,
+                textAlign: pdfInputTextAlign,
+                fontSize: pdfInputFontSize + "px",
+                fontFamily: getFontFamily(
+                  pdfInputFontWeight,
+                  pdfInputFontStyle,
+                ),
+                color: pdfInputFontColor,
+              }}
+            >
+              {value || ""}
+            </Text>
           </View>
         );
-      case "select":
-        return (
-          <View
-            style={{
-              padding: 4,
-              minHeight: 24,
-              borderWidth: 1,
-              borderColor: "#d1d5db",
-              borderStyle: "solid",
-              borderRadius: 4,
-            }}
-          >
-            <Text style={styles.value}>{value || ""}</Text>
-          </View>
-        );
+      }
       case "radio":
         return (
           <View style={{ flexDirection: "column", gap: 4 }}>
@@ -338,7 +579,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                   parseFloat(
                     defaultText.print?.lineHeight ||
                       defaultText.lineHeight ||
-                      styles.value.lineHeight,
+                      "1.2",
                   ) || 1.2,
                 letterSpacing: parseFloat(
                   defaultText.print?.letterSpacing ||
@@ -364,7 +605,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
       case "spacer":
         return <View style={{ height: element.properties.rows * 10 }} />;
       case "pageBreak":
-        return <Page break />;
+        return <View break />;
       case "table":
         return (
           <View
@@ -482,61 +723,72 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         <div className="flex-1 overflow-hidden">
           <PDFViewer width="100%" height="100%">
             <Document>
-              <Page size="A4" style={styles.page}>
-                <View style={{ width: "100%" }}>
-                  {(() => {
-                    // Group elements by row (y coordinate)
-                    const elementsByRow = elements.reduce((acc, element) => {
-                      const row = element.y;
-                      if (!acc[row]) acc[row] = [];
-                      acc[row].push(element);
-                      return acc;
-                    }, {});
+              {(() => {
+                // Group elements by row (y coordinate)
+                const elementsByRow = elements.reduce<
+                  Record<string, FormElement[]>
+                >((acc, element) => {
+                  const row = element.y.toString();
+                  if (!acc[row]) acc[row] = [];
+                  acc[row].push(element);
+                  return acc;
+                }, {});
 
-                    // Sort rows by y coordinate and sort elements within each row by x coordinate
-                    return Object.entries(elementsByRow)
-                      .sort(([rowA], [rowB]) => Number(rowA) - Number(rowB))
-                      .map(([row, rowElements]) => {
-                        const sortedElements = [...rowElements].sort(
-                          (a, b) => a.x - b.x,
-                        );
-                        return (
+                // Sort rows by y coordinate and within each row by x coordinate
+                const sortedRows = Object.entries(elementsByRow)
+                  .sort(([rowA], [rowB]) => Number(rowA) - Number(rowB))
+                  .map(([_, rowElements]) =>
+                    rowElements.sort((a, b) => a.x - b.x),
+                  );
+
+                // Split rows into pages using a row that contains a pageBreak element as a divider
+                const pages: FormElement[][][] = [];
+                let currentPageRows: FormElement[][] = [];
+                sortedRows.forEach((row) => {
+                  currentPageRows.push(row);
+                  if (row.some((el) => el.type === "pageBreak")) {
+                    pages.push(currentPageRows);
+                    currentPageRows = [];
+                  }
+                });
+                if (currentPageRows.length > 0) {
+                  pages.push(currentPageRows);
+                }
+
+                return pages.map((pageRows, pageIndex) => (
+                  <Page key={pageIndex} size="A4" style={styles.page}>
+                    {pageRows.map((row, rowIndex) => (
+                      <View
+                        key={rowIndex}
+                        style={{
+                          flexDirection: "row",
+                          width: "100%",
+                          marginBottom: 16,
+                        }}
+                      >
+                        {row.map((element) => (
                           <View
-                            key={row}
+                            key={element.i}
                             style={{
-                              flexDirection: "row",
-                              width: "100%",
-                              marginBottom: 16,
+                              ...styles.section,
+                              width: `${((element.w || 12) / 12) * 100}%`,
+                              paddingHorizontal: 8,
                             }}
                           >
-                            {sortedElements.map((element) => (
-                              <View
-                                key={element.i}
-                                style={{
-                                  ...styles.section,
-                                  width: `${((element.w || 12) / 12) * 100}%`,
-                                  paddingHorizontal: 8,
-                                }}
-                              >
-                                {renderLabel(element)}
-                                <View
-                                  style={{
-                                    marginTop: 8,
-                                  }}
-                                >
-                                  {renderElementContent(
-                                    element,
-                                    formValues[element.i],
-                                  )}
-                                </View>
-                              </View>
-                            ))}
+                            {renderLabel(element)}
+                            <View style={{ marginTop: 8 }}>
+                              {renderElementContent(
+                                element,
+                                formValues[element.i],
+                              )}
+                            </View>
                           </View>
-                        );
-                      });
-                  })()}
-                </View>
-              </Page>
+                        ))}
+                      </View>
+                    ))}
+                  </Page>
+                ));
+              })()}
             </Document>
           </PDFViewer>
         </div>

@@ -31,69 +31,20 @@ export const Table: React.FC<FormElementProps> = ({
       <table className="w-full border-collapse">
         <tbody>
           {Array.from({ length: rows }).map((_, rowIndex) => {
-            // Calculate total explicit size and remaining space for this row
             const rowCells = Array.from({ length: columns }).map(
               (_, col) => `${rowIndex}-${col}`,
             );
-
-            // Find the largest cell in the row
-            const cellSizes = rowCells
-              .filter((key) => !isSkippedCell(key, cells, columns))
-              .map((key) => ({
-                key,
-                size: cells[key]?.style?.size || 0,
-              }))
-              .sort((a, b) => b.size - a.size);
-
-            const largestCell = cellSizes[0];
-
-            // For new cells or cells with invalid sizes, take space from the largest cell
-            rowCells.forEach((cellKey) => {
-              if (
-                !isSkippedCell(cellKey, cells, columns) &&
-                (!cells[cellKey]?.style?.size ||
-                  cells[cellKey]?.style?.size <= 0)
-              ) {
-                if (!cells[cellKey]) cells[cellKey] = { style: {} };
-
-                // If we have a largest cell to take from
-                if (largestCell && largestCell.size > 2) {
-                  const sizeToTake =
-                    Math.floor((largestCell.size / 2) * 100) / 100;
-                  cells[cellKey].style = {
-                    ...cells[cellKey].style,
-                    size: sizeToTake,
-                  };
-                  cells[largestCell.key].style.size =
-                    Math.floor((largestCell.size - sizeToTake) * 100) / 100;
-                } else {
-                  // Fallback to equal distribution if no large cell available
-                  const defaultSize = Math.max(
-                    1,
-                    Math.floor((12 / columns) * 100) / 100,
-                  );
-                  cells[cellKey].style = {
-                    ...cells[cellKey].style,
-                    size: defaultSize,
-                  };
-                }
-              }
-            });
+            distributeCellSizes(rowCells, cells, columns);
 
             return (
               <tr key={rowIndex}>
                 {Array.from({ length: columns }).map((_, colIndex) => {
                   const cellKey = `${rowIndex}-${colIndex}`;
-
-                  // Skip cells that are part of a colspan
                   if (isSkippedCell(cellKey, cells, columns)) return null;
 
-                  // Calculate colspan
                   const colspanRight = cells[cellKey]?.style?.colspanRight || 0;
                   const colspanLeft = cells[cellKey]?.style?.colspanLeft || 0;
                   const colspan = colspanRight + colspanLeft + 1;
-
-                  // Get cell size (explicit or calculated)
                   const cellSize = cells[cellKey]?.style?.size || 12 / columns;
 
                   return (
@@ -164,21 +115,45 @@ export const Table: React.FC<FormElementProps> = ({
   );
 };
 
-// Helper function to check if a cell should be skipped (part of colspan)
-const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
-  const [row, col] = cellKey.split("-").map(Number);
+// Updated helper function to normalize cell sizes so that their total equals 12
+function distributeCellSizes(
+  rowCells: string[],
+  cells: any,
+  columns: number,
+): void {
+  const validCells = rowCells.filter(
+    (key) => !isSkippedCell(key, cells, columns),
+  );
+  const n = validCells.length;
+  const sizes = validCells.map((key) => {
+    let s = cells[key]?.style?.size;
+    if (s === undefined || s <= 0) {
+      s = 12 / n;
+    }
+    return s;
+  });
+  const total = sizes.reduce((sum, s) => sum + s, 0);
+  validCells.forEach((key, index) => {
+    const normalized = Math.round((sizes[index] / total) * 12 * 10) / 10;
+    if (!cells[key]) cells[key] = { style: {} };
+    cells[key].style = { ...cells[key].style, size: normalized };
+  });
+}
 
-  // Check if cell is part of a right colspan
+// Helper function to check if a cell should be skipped (i.e. part of another cell's colspan)
+const isSkippedCell = (
+  cellKey: string,
+  cells: any,
+  columns: number,
+): boolean => {
+  const [row, col] = cellKey.split("-").map(Number);
   for (let i = 1; i <= columns; i++) {
     const prevCell = `${row}-${col - i}`;
     if (cells[prevCell]?.style?.colspanRight >= i) return true;
   }
-
-  // Check if cell is part of a left colspan
   for (let i = 1; i <= columns; i++) {
     const nextCell = `${row}-${col + i}`;
     if (cells[nextCell]?.style?.colspanLeft >= i) return true;
   }
-
   return false;
 };
