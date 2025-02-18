@@ -27,6 +27,37 @@ export const CheckboxGroup: React.FC<FormElementProps> = ({
         : [{ text: properties.label?.text || "Option", key: "option-1" }]
       ).map((option, index) => {
         const optionText = typeof option === "object" ? option.text : option;
+        const optionStyle =
+          typeof option === "object"
+            ? {
+                fontSize: option.preview?.fontSize || option.fontSize || "14px",
+                color:
+                  option.preview?.textColor || option.textColor || "#000000",
+                backgroundColor:
+                  option.preview?.backgroundColor ||
+                  option.backgroundColor ||
+                  "transparent",
+                fontWeight:
+                  option.preview?.fontWeight || option.fontWeight || "normal",
+                fontStyle:
+                  option.preview?.fontStyle || option.fontStyle || "normal",
+                textDecoration:
+                  option.preview?.textDecoration ||
+                  option.textDecoration ||
+                  "none",
+                lineHeight:
+                  option.preview?.lineHeight || option.lineHeight || "1.5",
+                letterSpacing:
+                  option.preview?.letterSpacing ||
+                  option.letterSpacing ||
+                  "normal",
+                padding: option.preview?.padding || option.padding || "0px",
+                display: "inline-block",
+                width: "100%",
+                textAlign:
+                  option.preview?.textAlign || option.textAlign || "left",
+              }
+            : {};
         const optionKey = typeof option === "object" ? option.key : option;
         return (
           <div key={index} className="flex items-center space-x-2">
@@ -52,6 +83,7 @@ export const CheckboxGroup: React.FC<FormElementProps> = ({
               htmlFor={`${element.i}-${index}`}
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               className="text-sm leading-none"
+              style={optionStyle}
             >
               {optionText}
             </label>

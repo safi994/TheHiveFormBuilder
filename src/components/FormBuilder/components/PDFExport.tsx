@@ -429,6 +429,51 @@ export const PDFExport: React.FC<PDFExportProps> = ({
               const optionText =
                 typeof option === "object" ? option.text : option;
               const isSelected = value === optionText;
+              const optionStyle =
+                typeof option === "object"
+                  ? {
+                      fontSize:
+                        parseFloat(
+                          option.print?.fontSize ||
+                            option.fontSize ||
+                            styles.value.fontSize,
+                        ) || 11,
+                      color:
+                        option.print?.textColor ||
+                        option.textColor ||
+                        styles.value.color,
+                      backgroundColor:
+                        option.print?.backgroundColor ||
+                        option.backgroundColor ||
+                        "transparent",
+                      fontWeight:
+                        option.print?.fontWeight ||
+                        option.fontWeight ||
+                        "normal",
+                      fontStyle:
+                        option.print?.fontStyle || option.fontStyle || "normal",
+                      textAlign:
+                        option.print?.textAlign || option.textAlign || "left",
+                      textDecoration:
+                        option.print?.textDecoration ||
+                        option.textDecoration ||
+                        "none",
+                      lineHeight:
+                        parseFloat(
+                          option.print?.lineHeight ||
+                            option.lineHeight ||
+                            "1.2",
+                        ) || 1.2,
+                      letterSpacing: parseFloat(
+                        option.print?.letterSpacing ||
+                          option.letterSpacing ||
+                          0,
+                      ),
+                      padding: parseInt(
+                        option.print?.padding || option.padding || 0,
+                      ),
+                    }
+                  : styles.value;
               return (
                 <View
                   key={index}
@@ -458,7 +503,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                       />
                     )}
                   </View>
-                  <Text style={styles.value}>{optionText}</Text>
+                  <Text style={optionStyle}>{optionText}</Text>
                 </View>
               );
             })}
@@ -473,6 +518,51 @@ export const PDFExport: React.FC<PDFExportProps> = ({
               const isSelected = Array.isArray(value)
                 ? value[index]
                 : index === 0 && value;
+              const optionStyle =
+                typeof option === "object"
+                  ? {
+                      fontSize:
+                        parseFloat(
+                          option.print?.fontSize ||
+                            option.fontSize ||
+                            styles.value.fontSize,
+                        ) || 11,
+                      color:
+                        option.print?.textColor ||
+                        option.textColor ||
+                        styles.value.color,
+                      backgroundColor:
+                        option.print?.backgroundColor ||
+                        option.backgroundColor ||
+                        "transparent",
+                      fontWeight:
+                        option.print?.fontWeight ||
+                        option.fontWeight ||
+                        "normal",
+                      fontStyle:
+                        option.print?.fontStyle || option.fontStyle || "normal",
+                      textAlign:
+                        option.print?.textAlign || option.textAlign || "left",
+                      textDecoration:
+                        option.print?.textDecoration ||
+                        option.textDecoration ||
+                        "none",
+                      lineHeight:
+                        parseFloat(
+                          option.print?.lineHeight ||
+                            option.lineHeight ||
+                            "1.2",
+                        ) || 1.2,
+                      letterSpacing: parseFloat(
+                        option.print?.letterSpacing ||
+                          option.letterSpacing ||
+                          0,
+                      ),
+                      padding: parseInt(
+                        option.print?.padding || option.padding || 0,
+                      ),
+                    }
+                  : styles.value;
               return (
                 <View
                   key={index}
@@ -504,7 +594,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                       </Text>
                     )}
                   </View>
-                  <Text style={styles.value}>{optionText}</Text>
+                  <Text style={optionStyle}>{optionText}</Text>
                 </View>
               );
             })}

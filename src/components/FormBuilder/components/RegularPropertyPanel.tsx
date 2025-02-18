@@ -168,17 +168,47 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
               onChange={(e) => {
                 const newOptions = [...options];
                 if (typeof option === "object") {
-                  newOptions[index] = { ...option, text: e.target.value };
+                  newOptions[index] = {
+                    ...option,
+                    text: e.target.value,
+                    preview: option.preview,
+                    print: option.print,
+                  };
                 } else {
                   newOptions[index] = {
                     text: e.target.value,
                     key: option.key || `KEY-${index + 1}`,
+                    preview: option.preview || {},
+                    print: option.print || {},
                   };
                 }
                 onChange(newOptions);
               }}
               placeholder="Option text"
             />
+            {element.type !== "select" && (
+              <TextEditor
+                value={typeof option === "object" ? option.text : option}
+                properties={typeof option === "object" ? option : {}}
+                onChange={(newValue, newProperties) => {
+                  const newOptions = [...options];
+                  if (typeof option === "object") {
+                    newOptions[index] = {
+                      ...option,
+                      ...newProperties,
+                      text: newValue,
+                    };
+                  } else {
+                    newOptions[index] = {
+                      text: newValue,
+                      key: `KEY-${index + 1}`,
+                      ...newProperties,
+                    };
+                  }
+                  onChange(newOptions);
+                }}
+              />
+            )}
             <Input
               value={
                 typeof option === "object" ? option.key : `KEY-${index + 1}`
