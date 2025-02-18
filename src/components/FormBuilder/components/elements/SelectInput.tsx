@@ -17,7 +17,6 @@ export const SelectInput: React.FC<FormElementProps> = ({
 }) => {
   const { properties } = element;
 
-  // Include color
   const inputStyle = {
     borderColor: properties.inputBorderColor || "#d1d5db",
     borderRadius: properties.inputBorderRadius
@@ -30,12 +29,17 @@ export const SelectInput: React.FC<FormElementProps> = ({
       : "1px",
     borderStyle: "solid",
     width: "100%",
+    height: properties.inputHeight ? properties.inputHeight + "px" : "40px",
     fontSize: properties.inputFontSize
       ? properties.inputFontSize + "px"
       : "14px",
     fontStyle: properties.inputFontStyle || "normal",
     fontWeight: properties.inputFontWeight || "normal",
-    color: properties.inputFontColor || "#000000", // <-- THIS IS KEY
+    color: properties.inputFontColor || "#000000",
+    minHeight: properties.inputHeight ? properties.inputHeight + "px" : "40px",
+    lineHeight: properties.inputHeight
+      ? properties.inputHeight - 16 + "px"
+      : "24px",
   };
 
   return (
