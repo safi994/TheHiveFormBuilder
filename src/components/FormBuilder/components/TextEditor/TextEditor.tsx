@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { Pencil } from "lucide-react";
+import {
+  Pencil,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+} from "lucide-react";
+const lucideIcons = { AlignLeft, AlignCenter, AlignRight, AlignJustify };
 import {
   Dialog,
   DialogContent,
@@ -12,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -95,7 +103,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     },
   });
 
-  // Update local state when props change
   React.useEffect(() => {
     setText(value);
     setCurrentProperties({
@@ -127,7 +134,6 @@ export const TextEditor: React.FC<TextEditorProps> = ({
     }));
   };
 
-  // Style object for the textarea preview
   const textareaStyle = {
     fontSize: currentProperties[mode].fontSize,
     color: currentProperties[mode].textColor,
@@ -183,28 +189,57 @@ export const TextEditor: React.FC<TextEditorProps> = ({
               <TabsTrigger value="color">Color</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="style" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Font Size</label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      min="8"
-                      max="72"
-                      value={parseInt(currentProperties[mode].fontSize) || ""}
-                      onChange={(e) =>
-                        updateProperty("fontSize", `${e.target.value}px`)
-                      }
-                      className="pr-8"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                      px
+            <TabsContent value="style" className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Font Size
+                    <span className="text-xs text-muted-foreground">
+                      {parseInt(currentProperties[mode].fontSize)}px
                     </span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Slider
+                        value={[
+                          parseInt(currentProperties[mode].fontSize) || 16,
+                        ]}
+                        min={8}
+                        max={72}
+                        step={1}
+                        onValueChange={([value]) =>
+                          updateProperty("fontSize", `${value}px`)
+                        }
+                        className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min={8}
+                          max={72}
+                          value={
+                            parseInt(currentProperties[mode].fontSize) || 16
+                          }
+                          onChange={(e) => {
+                            const value = Math.max(
+                              8,
+                              Math.min(72, Number(e.target.value)),
+                            );
+                            updateProperty("fontSize", `${value}px`);
+                          }}
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          px
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-sm font-medium">Font Weight</label>
                   <Select
                     value={currentProperties[mode].fontWeight}
@@ -212,17 +247,19 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                       updateProperty("fontWeight", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select weight" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="semibold">Semibold</SelectItem>
                       <SelectItem value="bold">Bold</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-sm font-medium">Font Style</label>
                   <Select
                     value={currentProperties[mode].fontStyle}
@@ -230,7 +267,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                       updateProperty("fontStyle", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select style" />
                     </SelectTrigger>
                     <SelectContent>
@@ -240,7 +277,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-sm font-medium">Text Decoration</label>
                   <Select
                     value={currentProperties[mode].textDecoration}
@@ -248,7 +285,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                       updateProperty("textDecoration", value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select decoration" />
                     </SelectTrigger>
                     <SelectContent>
@@ -258,125 +295,246 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-sm font-medium">Text Align</label>
-                  <Select
-                    value={currentProperties[mode].textAlign}
-                    onValueChange={(value) =>
-                      updateProperty("textAlign", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select alignment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="center">Center</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                      <SelectItem value="justify">Justify</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="spacing" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Line Height</label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      min="0.5"
-                      max="3"
-                      step="0.1"
-                      value={
-                        parseFloat(currentProperties[mode].lineHeight) || ""
-                      }
-                      onChange={(e) =>
-                        updateProperty("lineHeight", e.target.value)
-                      }
-                      className="pr-8"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                      ×
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Letter Spacing</label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      min="-2"
-                      max="10"
-                      step="0.5"
-                      value={
-                        parseFloat(currentProperties[mode].letterSpacing) || ""
-                      }
-                      onChange={(e) =>
-                        updateProperty("letterSpacing", `${e.target.value}px`)
-                      }
-                      className="pr-8"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                      px
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Padding</label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      min="0"
-                      max="32"
-                      value={parseInt(currentProperties[mode].padding) || ""}
-                      onChange={(e) =>
-                        updateProperty("padding", `${e.target.value}px`)
-                      }
-                      className="pr-8"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-                      px
-                    </span>
+                  <div className="grid grid-cols-4 gap-1">
+                    {[
+                      { value: "left", icon: "AlignLeft" },
+                      { value: "center", icon: "AlignCenter" },
+                      { value: "right", icon: "AlignRight" },
+                      { value: "justify", icon: "AlignJustify" },
+                    ].map((option) => {
+                      const Icon = lucideIcons[option.icon];
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() =>
+                            updateProperty("textAlign", option.value)
+                          }
+                          className={`p-2 rounded-md transition-all ${
+                            currentProperties[mode].textAlign === option.value
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "hover:bg-muted"
+                          }`}
+                          type="button"
+                        >
+                          <Icon className="w-4 h-4" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
             </TabsContent>
 
-            <TabsContent value="color" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Text Color</label>
-                  <Input
-                    type="color"
-                    value={currentProperties[mode].textColor}
-                    onChange={(e) =>
-                      updateProperty("textColor", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Background Color
+            <TabsContent value="spacing" className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Line Height
+                    <span className="text-xs text-muted-foreground">
+                      {parseFloat(currentProperties[mode].lineHeight)}×
+                    </span>
                   </label>
-                  <div className="flex gap-2 items-center">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Slider
+                        value={[
+                          parseFloat(currentProperties[mode].lineHeight) || 1.5,
+                        ]}
+                        min={0.5}
+                        max={3}
+                        step={0.1}
+                        onValueChange={([value]) =>
+                          updateProperty("lineHeight", value.toString())
+                        }
+                        className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min={0.5}
+                          max={3}
+                          step={0.1}
+                          value={
+                            parseFloat(currentProperties[mode].lineHeight) ||
+                            1.5
+                          }
+                          onChange={(e) => {
+                            const value = Math.max(
+                              0.5,
+                              Math.min(3, Number(e.target.value)),
+                            );
+                            updateProperty("lineHeight", value.toString());
+                          }}
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          ×
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Letter Spacing
+                    <span className="text-xs text-muted-foreground">
+                      {parseFloat(currentProperties[mode].letterSpacing)}px
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Slider
+                        value={[
+                          parseFloat(currentProperties[mode].letterSpacing) ||
+                            0,
+                        ]}
+                        min={-2}
+                        max={10}
+                        step={0.5}
+                        onValueChange={([value]) =>
+                          updateProperty("letterSpacing", `${value}px`)
+                        }
+                        className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min={-2}
+                          max={10}
+                          step={0.5}
+                          value={
+                            parseFloat(currentProperties[mode].letterSpacing) ||
+                            0
+                          }
+                          onChange={(e) => {
+                            const value = Math.max(
+                              -2,
+                              Math.min(10, Number(e.target.value)),
+                            );
+                            updateProperty("letterSpacing", `${value}px`);
+                          }}
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          px
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Padding
+                    <span className="text-xs text-muted-foreground">
+                      {parseInt(currentProperties[mode].padding)}px
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <Slider
+                        value={[parseInt(currentProperties[mode].padding) || 0]}
+                        min={0}
+                        max={32}
+                        step={1}
+                        onValueChange={([value]) =>
+                          updateProperty("padding", `${value}px`)
+                        }
+                        className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+                      />
+                    </div>
+                    <div className="w-20">
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={32}
+                          value={parseInt(currentProperties[mode].padding) || 0}
+                          onChange={(e) => {
+                            const value = Math.max(
+                              0,
+                              Math.min(32, Number(e.target.value)),
+                            );
+                            updateProperty("padding", `${value}px`);
+                          }}
+                          className="pr-8"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                          px
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="color" className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Text Color
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {currentProperties[mode].textColor}
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-10 h-10 overflow-hidden rounded-full ring-1 ring-border">
+                      <input
+                        type="color"
+                        value={currentProperties[mode].textColor}
+                        onChange={(e) =>
+                          updateProperty("textColor", e.target.value)
+                        }
+                        className="absolute inset-0 w-[150%] h-[150%] -top-2 -left-2 cursor-pointer"
+                      />
+                    </div>
                     <Input
-                      type="color"
-                      value={
-                        currentProperties[mode].backgroundColor ===
-                        "transparent"
-                          ? "#ffffff"
-                          : currentProperties[mode].backgroundColor
+                      value={currentProperties[mode].textColor}
+                      onChange={(e) =>
+                        updateProperty("textColor", e.target.value)
                       }
+                      className="flex-1 font-mono uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-sm font-medium flex items-center justify-between">
+                    Background Color
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {currentProperties[mode].backgroundColor}
+                    </span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-10 h-10 overflow-hidden rounded-full ring-1 ring-border">
+                      <input
+                        type="color"
+                        value={
+                          currentProperties[mode].backgroundColor ===
+                          "transparent"
+                            ? "#ffffff"
+                            : currentProperties[mode].backgroundColor
+                        }
+                        onChange={(e) =>
+                          updateProperty("backgroundColor", e.target.value)
+                        }
+                        className="absolute inset-0 w-[150%] h-[150%] -top-2 -left-2 cursor-pointer"
+                      />
+                    </div>
+                    <Input
+                      value={currentProperties[mode].backgroundColor}
                       onChange={(e) =>
                         updateProperty("backgroundColor", e.target.value)
                       }
-                      className="w-[150px]"
+                      className="flex-1 font-mono uppercase"
                     />
                     <Button
                       variant="outline"
@@ -385,7 +543,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
                         updateProperty("backgroundColor", "transparent")
                       }
                     >
-                      Transparent
+                      Clear
                     </Button>
                   </div>
                 </div>

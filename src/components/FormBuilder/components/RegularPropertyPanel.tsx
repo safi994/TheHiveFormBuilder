@@ -100,6 +100,13 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
       );
     }
 
+    // Special case for options
+    if (key === "options") {
+      return renderOptionsInput(value, (newOptions) =>
+        onUpdateProperty(i, key, newOptions),
+      );
+    }
+
     // Special case for placeholder and defaultValue
     if (key === "placeholder" || key === "defaultValue") {
       return (
@@ -144,6 +151,77 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
           />
         );
     }
+  };
+
+  const renderOptionsInput = (
+    options: any[] = [],
+    onChange: (newOptions: any[]) => void,
+  ) => {
+    return (
+      <div className="space-y-2">
+        <div className="text-sm font-medium mb-2">Options</div>
+        <div className="text-sm font-medium mb-4">Select Options and Keys</div>
+        {options.map((option, index) => (
+          <div key={index} className="flex items-center gap-2 mb-2">
+            <Input
+              value={typeof option === "object" ? option.text : option}
+              onChange={(e) => {
+                const newOptions = [...options];
+                if (typeof option === "object") {
+                  newOptions[index] = { ...option, text: e.target.value };
+                } else {
+                  newOptions[index] = {
+                    text: e.target.value,
+                    key: option.key || `KEY-${index + 1}`,
+                  };
+                }
+                onChange(newOptions);
+              }}
+              placeholder="Option text"
+            />
+            <Input
+              value={
+                typeof option === "object" ? option.key : `KEY-${index + 1}`
+              }
+              onChange={(e) => {
+                const newOptions = [...options];
+                if (typeof option === "object") {
+                  newOptions[index] = { ...option, key: e.target.value };
+                } else {
+                  newOptions[index] = { text: option, key: e.target.value };
+                }
+                onChange(newOptions);
+              }}
+              placeholder="Option key"
+            />
+            <button
+              onClick={() => {
+                const newOptions = options.filter((_, i) => i !== index);
+                onChange(newOptions);
+              }}
+              className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          </div>
+        ))}
+        <button
+          onClick={() => {
+            const newOptions = [
+              ...options,
+              {
+                text: `Option ${options.length + 1}`,
+                key: `KEY-${options.length + 1}`,
+              },
+            ];
+            onChange(newOptions);
+          }}
+          className="w-full p-2 border border-dashed rounded-md hover:bg-gray-50 transition-colors text-sm text-gray-600"
+        >
+          Add +
+        </button>
+      </div>
+    );
   };
 
   const groupProperties = (properties: Record<string, any>) => {

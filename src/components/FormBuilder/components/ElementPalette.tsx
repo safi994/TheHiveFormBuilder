@@ -20,6 +20,7 @@ import {
   Text,
   ImagePlus,
   SeparatorHorizontal,
+  Table2,
 } from "lucide-react";
 import {
   Tooltip,
@@ -40,6 +41,8 @@ interface ElementCardProps {
 
 const getIconForType = (type: string) => {
   switch (type) {
+    case "table":
+      return <Table2 className="w-4 h-4" />;
     case "spacer":
       return <Minus className="w-4 h-4" />;
     case "text":
