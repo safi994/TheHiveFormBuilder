@@ -8,17 +8,6 @@ import {
 } from "@/components/ui/select";
 import { FormElementProps } from "../../types";
 
-/**
- * SelectInput Component
- *
- * A form element that renders a dropdown select with configurable options.
- *
- * @param element - The form element configuration
- * @param value - The current selected value
- * @param onChange - Callback function when selection changes
- * @param readOnly - Whether the select is in read-only mode
- * @param isPreview - Whether the component is in preview mode
- */
 export const SelectInput: React.FC<FormElementProps> = ({
   element,
   value,
@@ -28,7 +17,7 @@ export const SelectInput: React.FC<FormElementProps> = ({
 }) => {
   const { properties } = element;
 
-  // Create custom style from element properties with default fallbacks
+  // Include color
   const inputStyle = {
     borderColor: properties.inputBorderColor || "#d1d5db",
     borderRadius: properties.inputBorderRadius
@@ -46,6 +35,7 @@ export const SelectInput: React.FC<FormElementProps> = ({
       : "14px",
     fontStyle: properties.inputFontStyle || "normal",
     fontWeight: properties.inputFontWeight || "normal",
+    color: properties.inputFontColor || "#000000", // <-- THIS IS KEY
   };
 
   return (
@@ -73,15 +63,20 @@ export const SelectInput: React.FC<FormElementProps> = ({
         </div>
       </SelectTrigger>
       <SelectContent
-        style={{ position: "absolute", zIndex: isPreview ? 0 : -10 }}
+        // if you want the items to vanish in preview, you can keep zIndex at 0
+        style={{ position: "absolute", zIndex: isPreview ? 0 : 9999 }}
       >
         {Array.isArray(properties.options) &&
           properties.options.map((option: any, i: number) => {
             const optionText =
               typeof option === "object" ? option.text : option;
-            const optionKey = typeof option === "object" ? option.key : option;
             return (
-              <SelectItem key={i} value={optionText}>
+              <SelectItem
+                key={i}
+                value={optionText}
+                // Optionally set item text color:
+                style={{ color: properties.inputFontColor || "#000000" }}
+              >
                 {optionText}
               </SelectItem>
             );

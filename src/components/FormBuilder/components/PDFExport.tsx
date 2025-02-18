@@ -1,5 +1,4 @@
 import React from "react";
-import { FormElement } from "../types";
 import {
   Document,
   Page,
@@ -8,26 +7,63 @@ import {
   Image,
   StyleSheet,
   PDFViewer,
+  Font,
 } from "@react-pdf/renderer";
-import config from "../config";
+import { FormElement } from "../types"; // Adjust if needed
 
+/**
+ * 1) Register custom fonts so that different weights & styles actually work.
+ *    Make sure these .ttf files exist at the specified paths or URLs.
+ */
+Font.register({
+  family: "Roboto",
+  fonts: [
+    {
+      src: "https://kfzkiel.de/wp-content/uploads/Roboto-Regular.ttf", // or a public URL
+      fontWeight: "normal",
+      fontStyle: "normal",
+    },
+    {
+      src: "https://kfzkiel.de/wp-content/uploads/Roboto-Italic.ttf",
+      fontWeight: "normal",
+      fontStyle: "italic",
+    },
+    {
+      src: "https://kfzkiel.de/wp-content/uploads/Roboto-Bold.ttf",
+      fontWeight: "bold",
+      fontStyle: "normal",
+    },
+    {
+      src: "https://kfzkiel.de/wp-content/uploads/Roboto-BoldItalic.ttf",
+      fontWeight: "bold",
+      fontStyle: "italic",
+    },
+    // If you need extra weights (e.g., 300, 500, 900), register them here.
+  ],
+});
+
+/**
+ * 2) Create an interface for our PDFExport component props.
+ */
 interface PDFExportProps {
   elements: FormElement[];
   formValues: Record<string, any>;
   onClose: () => void;
 }
 
-// Helper function to check if a cell should be skipped (part of colspan)
+/**
+ * 3) Utility to check if a table cell should be skipped (because of colspan).
+ */
 const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
   const [row, col] = cellKey.split("-").map(Number);
 
-  // Check if cell is part of a right colspan
+  // Check right colspan
   for (let i = 1; i <= columns; i++) {
     const prevCell = `${row}-${col - i}`;
     if (cells[prevCell]?.style?.colspanRight >= i) return true;
   }
 
-  // Check if cell is part of a left colspan
+  // Check left colspan
   for (let i = 1; i <= columns; i++) {
     const nextCell = `${row}-${col + i}`;
     if (cells[nextCell]?.style?.colspanLeft >= i) return true;
@@ -36,293 +72,156 @@ const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
   return false;
 };
 
+/**
+ * 4) Global styles used by default. You can tweak these if you want
+ *    different base colors, spacing, etc.
+ */
+const baseStyles = StyleSheet.create({
+  page: {
+    padding: 24,
+    backgroundColor: "#ffffff",
+  },
+  section: {
+    padding: 8,
+    marginBottom: 8,
+  },
+  label: {
+    fontFamily: "Roboto",
+    fontSize: 10,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 4,
+  },
+  required: {
+    color: "#f00",
+  },
+  value: {
+    fontFamily: "Roboto",
+    fontSize: 10,
+    fontWeight: "normal",
+    color: "#000",
+  },
+});
+
+/**
+ * 5) The main PDFExport component
+ */
 export const PDFExport: React.FC<PDFExportProps> = ({
   elements,
   formValues,
   onClose,
 }) => {
-  const styles = StyleSheet.create({
-    page: {
-      backgroundColor: config.pdf.styles.page.backgroundColor,
-      padding:
-        typeof config.pdf.styles.page.padding === "string"
-          ? parseFloat(config.pdf.styles.page.padding)
-          : config.pdf.styles.page.padding,
-      color: config.pdf.styles.page.color,
-      maxWidth:
-        typeof config.pdf.styles.page.maxWidth === "string"
-          ? parseFloat(config.pdf.styles.page.maxWidth)
-          : config.pdf.styles.page.maxWidth,
-    },
-    title: {
-      fontSize:
-        typeof config.pdf.styles.title.fontSize === "string"
-          ? parseFloat(config.pdf.styles.title.fontSize)
-          : config.pdf.styles.title.fontSize,
-      marginBottom:
-        typeof config.pdf.styles.title.marginBottom === "string"
-          ? parseFloat(config.pdf.styles.title.marginBottom)
-          : config.pdf.styles.title.marginBottom,
-      fontWeight: config.pdf.styles.title.fontWeight as
-        | "normal"
-        | "bold"
-        | "medium"
-        | "thin"
-        | "hairline"
-        | "ultralight"
-        | "extralight"
-        | "light"
-        | "semibold"
-        | "demibold"
-        | "ultrabold"
-        | "extrabold"
-        | "heavy"
-        | "black",
-      color: config.pdf.styles.title.color,
-      textAlign: config.pdf.styles.title.textAlign as
-        | "left"
-        | "center"
-        | "right"
-        | "justify",
-    },
-    row: {
-      flexDirection: config.pdf.styles.row.flexDirection as
-        | "row"
-        | "row-reverse"
-        | "column"
-        | "column-reverse",
-      marginBottom:
-        typeof config.pdf.styles.row.marginBottom === "string"
-          ? parseFloat(config.pdf.styles.row.marginBottom)
-          : config.pdf.styles.row.marginBottom,
-      width:
-        typeof config.pdf.styles.row.width === "string"
-          ? parseFloat(config.pdf.styles.row.width)
-          : config.pdf.styles.row.width,
-      gap:
-        typeof config.pdf.styles.row.gap === "string"
-          ? parseFloat(config.pdf.styles.row.gap)
-          : config.pdf.styles.row.gap,
-    },
-    section: {
-      padding:
-        typeof config.pdf.styles.section.padding === "string"
-          ? parseFloat(config.pdf.styles.section.padding)
-          : config.pdf.styles.section.padding,
-      marginRight:
-        typeof config.pdf.styles.section.marginRight === "string"
-          ? parseFloat(config.pdf.styles.section.marginRight)
-          : config.pdf.styles.section.marginRight,
-      marginBottom:
-        typeof config.pdf.styles.section.marginBottom === "string"
-          ? parseFloat(config.pdf.styles.section.marginBottom)
-          : config.pdf.styles.section.marginBottom,
-      marginLeft:
-        typeof config.pdf.styles.section.marginLeft === "string"
-          ? parseFloat(config.pdf.styles.section.marginLeft)
-          : config.pdf.styles.section.marginLeft,
-    },
-    label: {
-      fontSize:
-        typeof config.pdf.styles.label.fontSize === "string"
-          ? parseFloat(config.pdf.styles.label.fontSize)
-          : config.pdf.styles.label.fontSize,
-      marginBottom:
-        typeof config.pdf.styles.label.marginBottom === "string"
-          ? parseFloat(config.pdf.styles.label.marginBottom)
-          : config.pdf.styles.label.marginBottom,
-      color: config.pdf.styles.label.color,
-      fontWeight: config.pdf.styles.label.fontWeight as
-        | "normal"
-        | "bold"
-        | "medium"
-        | "thin"
-        | "hairline"
-        | "ultralight"
-        | "extralight"
-        | "light"
-        | "semibold"
-        | "demibold"
-        | "ultrabold"
-        | "extrabold"
-        | "heavy"
-        | "black",
-      lineHeight:
-        typeof config.pdf.styles.label.lineHeight === "string"
-          ? parseFloat(config.pdf.styles.label.lineHeight)
-          : config.pdf.styles.label.lineHeight,
-    },
-    value: {
-      fontSize:
-        typeof config.pdf.styles.value.fontSize === "string"
-          ? parseFloat(config.pdf.styles.value.fontSize)
-          : config.pdf.styles.value.fontSize,
-      color: config.pdf.styles.value.color,
-    },
-    required: {
-      color: config.pdf.styles.required.color,
-    },
-  });
-
-  // Add helper functions after styles declaration
-  const mapFontWeight = (
-    weight: string | number,
-  ):
-    | number
-    | "normal"
-    | "bold"
-    | "medium"
-    | "thin"
-    | "hairline"
-    | "ultralight"
-    | "extralight"
-    | "light"
-    | "semibold"
-    | "demibold"
-    | "ultrabold"
-    | "extrabold"
-    | "heavy"
-    | "black" => {
-    if (typeof weight === "number") return weight;
-    switch (weight) {
-      case "normal":
-      case "bold":
-      case "medium":
-      case "thin":
-      case "hairline":
-      case "ultralight":
-      case "extralight":
-      case "light":
-      case "semibold":
-      case "demibold":
-      case "ultrabold":
-      case "extrabold":
-      case "heavy":
-      case "black":
-        return weight;
-      case "bolder":
-        return 800;
-      case "lighter":
-        return 300;
-      default:
-        return "normal";
-    }
-  };
-
-  const mapFontStyle = (style: string): "normal" | "italic" => {
-    return style === "oblique" || style === "italic" ? "italic" : "normal";
-  };
-
-  const getFontFamily = (weight: string, style: string): string => {
-    const normalizedWeight = weight.toLowerCase();
-    const normalizedStyle = style.toLowerCase();
-    if (normalizedWeight === "bold" && normalizedStyle === "italic") {
-      return "Helvetica-BoldOblique";
-    } else if (normalizedWeight === "bold") {
-      return "Helvetica-Bold";
-    } else if (normalizedStyle === "italic") {
-      return "Helvetica-Oblique";
-    } else {
-      return "Helvetica";
-    }
-  };
-
+  // Helper to render the label (if any)
   const renderLabel = (element: FormElement) => {
-    if (!element?.properties?.label) return null;
-    const labelProps = element.properties.label;
+    const labelProps = element.properties?.label;
+    if (!labelProps) return null;
+
+    // The user might have a string label or an object with styling info
     const labelText =
       typeof labelProps === "object" ? labelProps.text : labelProps;
     if (!labelText) return null;
 
-    const labelStyle =
-      typeof labelProps === "object"
-        ? {
-            ...styles.label,
-            fontSize:
-              parseFloat(
-                labelProps.print?.fontSize ||
-                  labelProps.fontSize ||
-                  styles.label.fontSize,
-              ) || 11,
-            color:
-              labelProps.print?.textColor ||
-              labelProps.textColor ||
-              styles.label.color,
-            backgroundColor:
-              labelProps.print?.backgroundColor ||
-              labelProps.backgroundColor ||
-              "transparent",
-            fontWeight:
-              labelProps.print?.fontWeight ||
-              labelProps.fontWeight ||
-              styles.label.fontWeight,
-            fontStyle:
-              labelProps.print?.fontStyle || labelProps.fontStyle || "normal",
-            textAlign:
-              labelProps.print?.textAlign || labelProps.textAlign || "left",
-            textDecoration:
-              labelProps.print?.textDecoration ||
-              labelProps.textDecoration ||
-              "none",
-            lineHeight:
-              parseFloat(
-                labelProps.print?.lineHeight ||
-                  labelProps.lineHeight ||
-                  styles.label.lineHeight,
-              ) || 1.2,
-            letterSpacing: parseFloat(
-              labelProps.print?.letterSpacing || labelProps.letterSpacing || 0,
-            ),
-            padding: parseInt(
-              labelProps.print?.padding || labelProps.padding || 0,
-            ),
-          }
-        : styles.label;
+    // If labelProps is an object, we can read extra styling
+    if (typeof labelProps === "object") {
+      // Convert to numeric or default
+      const fontSize = labelProps.print?.fontSize
+        ? parseFloat(labelProps.print.fontSize)
+        : labelProps.fontSize
+          ? parseFloat(labelProps.fontSize)
+          : 10;
+      const color =
+        labelProps.print?.textColor || labelProps.textColor || "#000";
+      const bgColor =
+        labelProps.print?.backgroundColor ||
+        labelProps.backgroundColor ||
+        "transparent";
+      const fontWeight =
+        (labelProps.print?.fontWeight || labelProps.fontWeight) ?? "bold";
+      const fontStyle =
+        labelProps.print?.fontStyle || labelProps.fontStyle || "normal";
+      const textAlign =
+        labelProps.print?.textAlign || labelProps.textAlign || "left";
+      const textDecoration =
+        labelProps.print?.textDecoration || labelProps.textDecoration || "none";
+      const lineHeight =
+        Number(labelProps.print?.lineHeight || labelProps.lineHeight) || 1.2;
+      const letterSpacing =
+        Number(labelProps.print?.letterSpacing || labelProps.letterSpacing) ||
+        0;
+      const padding =
+        Number(labelProps.print?.padding || labelProps.padding) || 0;
 
-    return (
-      <Text style={labelStyle}>
-        {labelText}
-        {element.properties.required && <Text style={styles.required}>*</Text>}
-      </Text>
-    );
+      return (
+        <Text
+          style={{
+            fontFamily: "Roboto",
+            fontSize,
+            fontWeight,
+            fontStyle,
+            color,
+            backgroundColor: bgColor,
+            textAlign,
+            textDecoration,
+            lineHeight,
+            letterSpacing,
+            padding,
+            marginBottom: 4,
+          }}
+        >
+          {labelText}
+          {element.properties.required && (
+            <Text style={baseStyles.required}>*</Text>
+          )}
+        </Text>
+      );
+    } else {
+      // Plain string label
+      return (
+        <Text style={baseStyles.label}>
+          {labelText}
+          {element.properties.required && (
+            <Text style={baseStyles.required}>*</Text>
+          )}
+        </Text>
+      );
+    }
   };
 
+  // The main function to render each form element's "content" (i.e., input, checkbox, etc.)
   const renderElementContent = (element: FormElement, value: any) => {
-    if (element?.properties?.showInPDF === false) return null;
+    // If property says "no PDF rendering," skip:
+    if (element.properties?.showInPDF === false) return null;
 
     switch (element.type) {
+      case "text":
+      case "textarea":
+      case "number":
+      case "select":
       case "date":
       case "time": {
+        // We'll unify these input-based elements for brevity
+        // Example: read some PDF-specific props
         const pdfInputBorderColor =
-          element.properties.inputBorderColorPDF || "#d1d5db";
+          element.properties.inputBorderColorPDF || "#ccc";
         const pdfInputBorderRadius =
-          typeof element.properties.inputBorderRadiusPDF === "number"
-            ? element.properties.inputBorderRadiusPDF
-            : 4;
+          Number(element.properties.inputBorderRadiusPDF) || 4;
         const pdfInputTextAlign =
           element.properties.inputTextAlignPDF || "left";
-        const pdfInputFontSize = element.properties.inputFontSizePDF || 14;
+        const pdfInputFontSize =
+          Number(element.properties.inputFontSizePDF) || 10;
         const pdfInputFontStyle =
           element.properties.inputFontStylePDF || "normal";
         const pdfInputFontWeight =
           element.properties.inputFontWeightPDF || "normal";
         const pdfInputFontColor =
-          element.properties.inputFontColorPDF || "#000000";
+          element.properties.inputFontColorPDF || "#000";
         const pdfInputBorderStyle =
           element.properties.inputBorderStylePDF || "solid";
-        const pdfInputHeight = element.properties.inputHeightPDF || 40;
-        const pdfInputBorderWidth = element.properties.inputBorderWidthPDF || 1;
-        const iconSize = 16;
-        let iconSrc = "";
-        if (element.type === "date") {
-          // Calendar icon (base64 encoded SVG)
-          iconSrc =
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHJlY3QgeD0iMyIgeT0iNCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iMiIgcng9IjIiIC8+PGxpbmUgeDE9IjE2IiB5MT0iMiIgeDI9IjE2IiB5Mj0iNiIgLz48bGluZSB4MT0iOCIgeTE9IjIiIHgyPSI4IiB5Mj0iNiIgLz48bGluZSB4MT0iMyIgeTE9IjEwIiB4Mj0iMjEiIHkyPSIxMCIgLz48L3N2Zz4=";
-        } else if (element.type === "time") {
-          // Clock icon (base64 encoded SVG)
-          iconSrc =
-            "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiIHZpZXdCb3g9IjAgMCAyNCAyNCI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIC8+PHBvbHlsaW5lIHBvaW50cz0iMTIgNiAxMiAxMiAxNiAxNCIgLz48L3N2Zz4=";
-        }
+        const pdfInputBorderWidth =
+          Number(element.properties.inputBorderWidthPDF) || 1;
+        const pdfInputHeight = Number(element.properties.inputHeightPDF) || 20;
+
+        // If it's a "date", you might want to format it:
         let displayValue = value || "";
         if (element.type === "date" && value) {
           const dateObj = new Date(value);
@@ -332,164 +231,89 @@ export const PDFExport: React.FC<PDFExportProps> = ({
             const year = dateObj.getFullYear();
             displayValue = `${day}/${month}/${year}`;
           }
+        } else {
+          displayValue = value || "";
         }
+
         return (
           <View
             style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 4,
               minHeight: pdfInputHeight,
+              padding: 4,
               borderWidth: pdfInputBorderWidth,
               borderColor: pdfInputBorderColor,
               borderStyle: pdfInputBorderStyle,
               borderRadius: pdfInputBorderRadius,
+              justifyContent: "center",
             }}
           >
             <Text
               style={{
-                ...styles.value,
-                flex: 1,
-                textAlign: pdfInputTextAlign,
-                fontSize: pdfInputFontSize + "px",
-                fontFamily: getFontFamily(
-                  pdfInputFontWeight,
-                  pdfInputFontStyle,
-                ),
+                fontFamily: "Roboto",
+                fontSize: pdfInputFontSize,
+                fontWeight: pdfInputFontWeight,
+                fontStyle: pdfInputFontStyle,
                 color: pdfInputFontColor,
+                textAlign: pdfInputTextAlign,
               }}
             >
               {displayValue}
             </Text>
-            {iconSrc && (
-              <Image
-                src={iconSrc}
-                style={{ width: iconSize, height: iconSize, marginLeft: 4 }}
-              />
-            )}
           </View>
         );
       }
-      case "text":
-      case "textarea":
-      case "number":
-      case "select": {
-        const pdfInputBorderColor =
-          element.properties.inputBorderColorPDF || "#d1d5db";
-        const pdfInputBorderRadius =
-          typeof element.properties.inputBorderRadiusPDF === "number"
-            ? element.properties.inputBorderRadiusPDF
-            : 4;
-        const pdfInputTextAlign =
-          element.properties.inputTextAlignPDF || "left";
-        const pdfInputFontSize = element.properties.inputFontSizePDF || 14;
-        const pdfInputFontStyle =
-          element.properties.inputFontStylePDF || "normal";
-        const pdfInputFontWeight =
-          element.properties.inputFontWeightPDF || "normal";
-        const pdfInputFontColor =
-          element.properties.inputFontColorPDF || "#000000";
-        const pdfInputBorderStyle =
-          element.properties.inputBorderStylePDF || "solid";
-        const pdfInputHeight = element.properties.inputHeightPDF || 40;
-        const pdfInputBorderWidth = element.properties.inputBorderWidthPDF || 1;
+
+      case "radio": {
+        const options = element.properties.options || [];
         return (
-          <View
-            style={{
-              padding: 4,
-              minHeight: pdfInputHeight,
-              borderWidth: pdfInputBorderWidth,
-              borderColor: pdfInputBorderColor,
-              borderStyle: pdfInputBorderStyle,
-              borderRadius: pdfInputBorderRadius,
-            }}
-          >
-            <Text
-              style={{
-                ...styles.value,
-                textAlign: pdfInputTextAlign,
-                fontSize: pdfInputFontSize + "px",
-                fontFamily: getFontFamily(
-                  pdfInputFontWeight,
-                  pdfInputFontStyle,
-                ),
-                color: pdfInputFontColor,
-              }}
-            >
-              {value || ""}
-            </Text>
-          </View>
-        );
-      }
-      case "radio":
-        return (
-          <View style={{ flexDirection: "column", gap: 4 }}>
-            {element.properties.options?.map((option, index) => {
+          <View>
+            {options.map((option: any, idx: number) => {
               const optionText =
                 typeof option === "object" ? option.text : option;
               const isSelected = value === optionText;
-              const optionStyle =
-                typeof option === "object"
-                  ? {
-                      fontSize:
-                        parseFloat(
-                          option.print?.fontSize ||
-                            option.fontSize ||
-                            styles.value.fontSize,
-                        ) || 11,
-                      color:
-                        option.print?.textColor ||
-                        option.textColor ||
-                        styles.value.color,
-                      backgroundColor:
-                        option.print?.backgroundColor ||
-                        option.backgroundColor ||
-                        "transparent",
-                      fontWeight:
-                        option.print?.fontWeight ||
-                        option.fontWeight ||
-                        "normal",
-                      fontStyle:
-                        option.print?.fontStyle || option.fontStyle || "normal",
-                      textAlign:
-                        option.print?.textAlign || option.textAlign || "left",
-                      textDecoration:
-                        option.print?.textDecoration ||
-                        option.textDecoration ||
-                        "none",
-                      lineHeight:
-                        parseFloat(
-                          option.print?.lineHeight ||
-                            option.lineHeight ||
-                            "1.2",
-                        ) || 1.2,
-                      letterSpacing: parseFloat(
-                        option.print?.letterSpacing ||
-                          option.letterSpacing ||
-                          0,
-                      ),
-                      padding: parseInt(
-                        option.print?.padding || option.padding || 0,
-                      ),
-                    }
-                  : styles.value;
+
+              // If option is an object, read styling:
+              let optionStyle = baseStyles.value;
+              if (typeof option === "object") {
+                const fontSize =
+                  Number(option.print?.fontSize || option.fontSize) || 10;
+                const color =
+                  option.print?.textColor || option.textColor || "#000";
+                const fontWeight =
+                  option.print?.fontWeight || option.fontWeight || "normal";
+                const fontStyle =
+                  option.print?.fontStyle || option.fontStyle || "normal";
+
+                optionStyle = {
+                  fontFamily: "Roboto",
+                  fontSize,
+                  fontWeight,
+                  fontStyle,
+                  color,
+                };
+              }
+
               return (
                 <View
-                  key={index}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                  key={idx}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 4,
+                  }}
                 >
+                  {/* Circle for radio */}
                   <View
                     style={{
                       width: 12,
                       height: 12,
                       borderWidth: 1,
-                      borderColor: "#000000",
+                      borderColor: "#000",
                       borderRadius: 6,
-                      backgroundColor: "white",
-                      position: "relative",
+                      marginRight: 8,
                       alignItems: "center",
                       justifyContent: "center",
+                      backgroundColor: "#fff",
                     }}
                   >
                     {isSelected && (
@@ -498,7 +322,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                           width: 6,
                           height: 6,
                           borderRadius: 3,
-                          backgroundColor: "#000000",
+                          backgroundColor: "#000",
                         }}
                       />
                     )}
@@ -509,84 +333,71 @@ export const PDFExport: React.FC<PDFExportProps> = ({
             })}
           </View>
         );
-      case "checkbox":
+      }
+
+      case "checkbox": {
+        const options = element.properties.options || [];
         return (
-          <View style={{ flexDirection: "column", gap: 4 }}>
-            {element.properties.options?.map((option, index) => {
+          <View>
+            {options.map((option: any, idx: number) => {
               const optionText =
                 typeof option === "object" ? option.text : option;
-              const isSelected = Array.isArray(value)
-                ? value[index]
-                : index === 0 && value;
-              const optionStyle =
-                typeof option === "object"
-                  ? {
-                      fontSize:
-                        parseFloat(
-                          option.print?.fontSize ||
-                            option.fontSize ||
-                            styles.value.fontSize,
-                        ) || 11,
-                      color:
-                        option.print?.textColor ||
-                        option.textColor ||
-                        styles.value.color,
-                      backgroundColor:
-                        option.print?.backgroundColor ||
-                        option.backgroundColor ||
-                        "transparent",
-                      fontWeight:
-                        option.print?.fontWeight ||
-                        option.fontWeight ||
-                        "normal",
-                      fontStyle:
-                        option.print?.fontStyle || option.fontStyle || "normal",
-                      textAlign:
-                        option.print?.textAlign || option.textAlign || "left",
-                      textDecoration:
-                        option.print?.textDecoration ||
-                        option.textDecoration ||
-                        "none",
-                      lineHeight:
-                        parseFloat(
-                          option.print?.lineHeight ||
-                            option.lineHeight ||
-                            "1.2",
-                        ) || 1.2,
-                      letterSpacing: parseFloat(
-                        option.print?.letterSpacing ||
-                          option.letterSpacing ||
-                          0,
-                      ),
-                      padding: parseInt(
-                        option.print?.padding || option.padding || 0,
-                      ),
-                    }
-                  : styles.value;
+              // For checkboxes, "value" might be an array of booleans or something else
+              const isChecked = Array.isArray(value)
+                ? value[idx]
+                : idx === 0 && value;
+
+              // If option is an object, read styling:
+              let optionStyle = baseStyles.value;
+              if (typeof option === "object") {
+                const fontSize =
+                  Number(option.print?.fontSize || option.fontSize) || 10;
+                const color =
+                  option.print?.textColor || option.textColor || "#000";
+                const fontWeight =
+                  option.print?.fontWeight || option.fontWeight || "normal";
+                const fontStyle =
+                  option.print?.fontStyle || option.fontStyle || "normal";
+
+                optionStyle = {
+                  fontFamily: "Roboto",
+                  fontSize,
+                  fontWeight,
+                  fontStyle,
+                  color,
+                };
+              }
+
               return (
                 <View
-                  key={index}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                  key={idx}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    marginBottom: 4,
+                  }}
                 >
+                  {/* Square for checkbox */}
                   <View
                     style={{
-                      width: 14,
-                      height: 14,
+                      width: 12,
+                      height: 12,
                       borderWidth: 1,
-                      borderColor: "#6b7280",
-                      backgroundColor: "white",
-                      position: "relative",
+                      borderColor: "#666",
+                      marginRight: 8,
                       alignItems: "center",
                       justifyContent: "center",
+                      backgroundColor: "#fff",
                     }}
                   >
-                    {isSelected && (
+                    {isChecked && (
                       <Text
                         style={{
+                          fontFamily: "Roboto",
                           fontSize: 10,
-                          color: "#000000",
+                          color: "#000",
                           position: "absolute",
-                          top: 0,
+                          top: -2,
                           left: 3,
                         }}
                       >
@@ -600,204 +411,217 @@ export const PDFExport: React.FC<PDFExportProps> = ({
             })}
           </View>
         );
-      case "toggle":
+      }
+
+      case "toggle": {
+        // Simple ON/OFF
+        const isOn = Boolean(value);
+        const leftLabel = element.properties.leftLabel || "";
+        const rightLabel = element.properties.rightLabel || "";
+
         return (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            {element.properties.leftLabel && (
-              <Text style={styles.value}>{element.properties.leftLabel}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {leftLabel && (
+              <Text style={[baseStyles.value, { marginRight: 8 }]}>
+                {leftLabel}
+              </Text>
             )}
             <View
               style={{
                 padding: 4,
-                backgroundColor: value ? "#dbeafe" : "#fee2e2",
+                backgroundColor: isOn ? "#dbeafe" : "#fee2e2",
                 borderRadius: 4,
+                marginRight: 8,
               }}
             >
               <Text
                 style={{
+                  fontFamily: "Roboto",
                   fontSize: 10,
-                  color: value ? "#2563eb" : "#dc2626",
+                  color: isOn ? "#2563eb" : "#dc2626",
                 }}
               >
-                {value ? "ON" : "OFF"}
+                {isOn ? "ON" : "OFF"}
               </Text>
             </View>
-            {element.properties.rightLabel && (
-              <Text style={styles.value}>{element.properties.rightLabel}</Text>
-            )}
+            {rightLabel && <Text style={baseStyles.value}>{rightLabel}</Text>}
           </View>
         );
-      case "plainText":
+      }
+
+      case "plainText": {
         const defaultText = element.properties.defaultText;
         const textContent =
           typeof defaultText === "object" ? defaultText.text : defaultText;
-        const textStyle =
-          typeof defaultText === "object"
-            ? {
-                ...styles.value,
-                fontSize:
-                  parseFloat(
-                    defaultText.print?.fontSize ||
-                      defaultText.fontSize ||
-                      styles.value.fontSize,
-                  ) || 11,
-                color:
-                  defaultText.print?.textColor ||
-                  defaultText.textColor ||
-                  styles.value.color,
-                backgroundColor:
-                  defaultText.print?.backgroundColor ||
-                  defaultText.backgroundColor ||
-                  "transparent",
-                fontWeight:
-                  defaultText.print?.fontWeight ||
-                  defaultText.fontWeight ||
-                  "normal",
-                fontStyle:
-                  defaultText.print?.fontStyle ||
-                  defaultText.fontStyle ||
-                  "normal",
-                textAlign:
-                  defaultText.print?.textAlign ||
-                  defaultText.textAlign ||
-                  "left",
-                textDecoration:
-                  defaultText.print?.textDecoration ||
-                  defaultText.textDecoration ||
-                  "none",
-                lineHeight:
-                  parseFloat(
-                    defaultText.print?.lineHeight ||
-                      defaultText.lineHeight ||
-                      "1.2",
-                  ) || 1.2,
-                letterSpacing: parseFloat(
-                  defaultText.print?.letterSpacing ||
-                    defaultText.letterSpacing ||
-                    0,
-                ),
-                padding: parseInt(
-                  defaultText.print?.padding || defaultText.padding || 0,
-                ),
-              }
-            : styles.value;
-        return <Text style={textStyle}>{textContent}</Text>;
-      case "image":
+        if (!textContent) return null;
+
+        if (typeof defaultText === "object") {
+          const fontSize = defaultText.print?.fontSize
+            ? parseFloat(defaultText.print.fontSize)
+            : defaultText.fontSize
+              ? parseFloat(defaultText.fontSize)
+              : 10;
+          const color =
+            defaultText.print?.textColor || defaultText.textColor || "#000";
+          const fontWeight =
+            defaultText.print?.fontWeight || defaultText.fontWeight || "normal";
+          const fontStyle =
+            defaultText.print?.fontStyle || defaultText.fontStyle || "normal";
+          const bgColor =
+            defaultText.print?.backgroundColor ||
+            defaultText.backgroundColor ||
+            "transparent";
+
+          const textDecoration =
+            defaultText.print?.textDecoration ||
+            defaultText.textDecoration ||
+            "none";
+          return (
+            <Text
+              style={{
+                fontFamily: "Roboto",
+                fontSize,
+                fontWeight,
+                fontStyle,
+                color,
+                backgroundColor: bgColor,
+                textDecoration,
+              }}
+            >
+              {textContent}
+            </Text>
+          );
+        } else {
+          // plain string
+          return <Text style={baseStyles.value}>{textContent}</Text>;
+        }
+      }
+
+      case "image": {
+        // If an image has a value with `.url`, display
         if (!value?.url) return null;
         return (
           <View style={{ width: "100%", height: 140 }}>
             <Image
               src={value.url}
-              style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
             />
           </View>
         );
+      }
+
       case "spacer":
-        return <View style={{ height: element.properties.rows * 10 }} />;
+        // Let user specify how many rows to space
+        return <View style={{ height: (element.properties.rows || 1) * 10 }} />;
+
       case "pageBreak":
+        // Force new page
         return <View break />;
-      case "table":
+
+      case "table": {
+        // Render a table with the given rows/columns
+        const {
+          rows = 1,
+          columns = 1,
+          borderWidth = 1,
+          borderColor = "#666",
+          borderStyle = "solid",
+          borderRadius = 0,
+          cells = {},
+        } = element.properties;
+
         return (
           <View
             style={{
               width: "100%",
-              borderWidth: element.properties.borderWidth || 1,
-              borderColor: element.properties.borderColor || "#6b7280",
-              borderStyle: element.properties.borderStyle || "solid",
-              borderRadius: element.properties.borderRadius || 0,
+              borderWidth,
+              borderColor,
+              borderStyle,
+              borderRadius,
             }}
           >
-            {Array.from({ length: element.properties.rows || 1 }).map(
-              (_, rowIndex) => {
-                const rowCells = Array.from({
-                  length: element.properties.columns || 1,
-                }).map((_, col) => `${rowIndex}-${col}`);
-                const rowCellsWithSize = rowCells.filter(
-                  (key) => element.properties.cells?.[key]?.style?.size,
-                );
-                const totalExplicitSize = rowCellsWithSize.reduce(
-                  (sum, key) =>
-                    sum + (element.properties.cells[key]?.style?.size || 0),
-                  0,
-                );
-                const remainingSpace = 12 - totalExplicitSize;
-                const remainingCells =
-                  rowCells.length - rowCellsWithSize.length;
-                const defaultSize =
-                  remainingCells > 0
-                    ? remainingSpace / remainingCells
-                    : 12 / (element.properties.columns || 1);
+            {Array.from({ length: rows }).map((_, rowIndex) => {
+              // For each row, figure out the cell keys
+              const rowCells = Array.from({ length: columns }).map(
+                (_, colIndex) => `${rowIndex}-${colIndex}`,
+              );
+              // Figure out column sizing
+              const rowCellsWithSize = rowCells.filter(
+                (key) => cells[key]?.style?.size,
+              );
+              const totalExplicitSize = rowCellsWithSize.reduce(
+                (sum, key) => sum + (cells[key]?.style?.size || 0),
+                0,
+              );
+              const remainingSpace = 12 - totalExplicitSize;
+              const remainingCells = rowCells.length - rowCellsWithSize.length;
+              const defaultSize =
+                remainingCells > 0
+                  ? remainingSpace / remainingCells
+                  : 12 / columns;
 
-                return (
-                  <View
-                    key={rowIndex}
-                    style={{ flexDirection: "row", width: "100%" }}
-                  >
-                    {Array.from({
-                      length: element.properties.columns || 1,
-                    }).map((_, colIndex) => {
-                      const cellKey = `${rowIndex}-${colIndex}`;
-                      const cell = element.properties.cells?.[cellKey];
-                      const colspanRight = cell?.style?.colspanRight || 0;
-                      const colspanLeft = cell?.style?.colspanLeft || 0;
-                      const colspan = colspanRight + colspanLeft + 1;
-                      const cellSize = cell?.style?.size || defaultSize;
+              return (
+                <View
+                  key={rowIndex}
+                  style={{ flexDirection: "row", width: "100%" }}
+                >
+                  {Array.from({ length: columns }).map((_, colIndex) => {
+                    const cellKey = `${rowIndex}-${colIndex}`;
+                    const cell = cells[cellKey];
 
-                      // Skip cells that are part of a colspan
-                      if (
-                        isSkippedCell(
-                          cellKey,
-                          element.properties.cells,
-                          element.properties.columns,
-                        )
-                      ) {
-                        return null;
-                      }
+                    // If this cell is within a colspan, skip rendering
+                    if (isSkippedCell(cellKey, cells, columns)) return null;
 
-                      return (
-                        <View
-                          key={cellKey}
-                          style={{
-                            width: `${(cellSize / 12) * 100}%`,
-                            padding: cell?.style?.padding || 8,
-                            backgroundColor:
-                              cell?.style?.backgroundColor || "transparent",
-                            borderRightWidth:
-                              colIndex === (element.properties.columns || 1) - 1
-                                ? 0
-                                : element.properties.borderWidth || 1,
-                            borderBottomWidth:
-                              rowIndex === (element.properties.rows || 1) - 1
-                                ? 0
-                                : element.properties.borderWidth || 1,
-                            borderLeftWidth: 0,
-                            borderTopWidth: 0,
-                            borderColor:
-                              element.properties.borderColor || "#6b7280",
-                            borderStyle:
-                              element.properties.borderStyle || "solid",
-                          }}
-                        >
-                          {cell && (
-                            <>
-                              {cell.type !== "plainText" && renderLabel(cell)}
-                              {renderElementContent(cell, value?.[cellKey])}
-                            </>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-                );
-              },
-            )}
+                    const cellSize = cell?.style?.size || defaultSize;
+
+                    return (
+                      <View
+                        key={cellKey}
+                        style={{
+                          width: `${(cellSize / 12) * 100}%`,
+                          padding: cell?.style?.padding || 8,
+                          backgroundColor:
+                            cell?.style?.backgroundColor || "transparent",
+                          borderRightWidth:
+                            colIndex === columns - 1 ? 0 : borderWidth,
+                          borderBottomWidth:
+                            rowIndex === rows - 1 ? 0 : borderWidth,
+                          borderLeftWidth: 0,
+                          borderTopWidth: 0,
+                          borderColor,
+                          borderStyle,
+                        }}
+                      >
+                        {cell && (
+                          <>
+                            {cell.type !== "plainText" && renderLabel(cell)}
+                            {renderElementContent(cell, value?.[cellKey])}
+                          </>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })}
           </View>
         );
+      }
+
       default:
-        return <Text style={styles.value}>{value || ""}</Text>;
+        // If element type not recognized, just show value
+        return <Text style={baseStyles.value}>{value || ""}</Text>;
     }
   };
 
+  /**
+   * 6) Main return: a modal-like overlay with PDFViewer
+   *    that splits elements into rows -> pages -> etc.
+   */
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
@@ -810,43 +634,49 @@ export const PDFExport: React.FC<PDFExportProps> = ({
             Close
           </button>
         </div>
+
         <div className="flex-1 overflow-hidden">
           <PDFViewer width="100%" height="100%">
             <Document>
               {(() => {
                 // Group elements by row (y coordinate)
                 const elementsByRow = elements.reduce<
-                  Record<string, FormElement[]>
-                >((acc, element) => {
-                  const row = element.y.toString();
-                  if (!acc[row]) acc[row] = [];
-                  acc[row].push(element);
+                  Record<number, FormElement[]>
+                >((acc, el) => {
+                  const rowKey = el.y;
+                  if (!acc[rowKey]) acc[rowKey] = [];
+                  acc[rowKey].push(el);
                   return acc;
                 }, {});
 
-                // Sort rows by y coordinate and within each row by x coordinate
-                const sortedRows = Object.entries(elementsByRow)
-                  .sort(([rowA], [rowB]) => Number(rowA) - Number(rowB))
-                  .map(([_, rowElements]) =>
-                    rowElements.sort((a, b) => a.x - b.x),
+                // Sort rows by y, then sort each row's elements by x
+                const sortedRowArrays = Object.keys(elementsByRow)
+                  .map((k) => Number(k))
+                  .sort((a, b) => a - b)
+                  .map((rowKey) =>
+                    elementsByRow[rowKey].sort((a, b) => a.x - b.x),
                   );
 
-                // Split rows into pages using a row that contains a pageBreak element as a divider
+                // Split into pages where we encounter "pageBreak"
                 const pages: FormElement[][][] = [];
                 let currentPageRows: FormElement[][] = [];
-                sortedRows.forEach((row) => {
+
+                sortedRowArrays.forEach((row) => {
                   currentPageRows.push(row);
-                  if (row.some((el) => el.type === "pageBreak")) {
+                  // If this row has a pageBreak element, start a new page after it
+                  if (row.some((r) => r.type === "pageBreak")) {
                     pages.push(currentPageRows);
                     currentPageRows = [];
                   }
                 });
-                if (currentPageRows.length > 0) {
+                // Push remaining rows if any
+                if (currentPageRows.length) {
                   pages.push(currentPageRows);
                 }
 
+                // Now map over pages
                 return pages.map((pageRows, pageIndex) => (
-                  <Page key={pageIndex} size="A4" style={styles.page}>
+                  <Page key={pageIndex} size="A4" style={baseStyles.page}>
                     {pageRows.map((row, rowIndex) => (
                       <View
                         key={rowIndex}
@@ -860,9 +690,9 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                           <View
                             key={element.i}
                             style={{
-                              ...styles.section,
+                              ...baseStyles.section,
+                              // convert element.w (grid width, out of 12) to %
                               width: `${((element.w || 12) / 12) * 100}%`,
-                              paddingHorizontal: 8,
                             }}
                           >
                             {renderLabel(element)}
