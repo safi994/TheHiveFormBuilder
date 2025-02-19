@@ -12,14 +12,13 @@ import {
 import { FormElement } from "../types"; // Adjust if needed
 
 /**
- * 1) Register custom fonts so that different weights & styles actually work.
- *    Make sure these .ttf files exist at the specified paths or URLs.
+ * 1) Register custom fonts
  */
 Font.register({
   family: "Roboto",
   fonts: [
     {
-      src: "https://kfzkiel.de/wp-content/uploads/Roboto-Regular.ttf", // or a public URL
+      src: "https://kfzkiel.de/wp-content/uploads/Roboto-Regular.ttf",
       fontWeight: "normal",
       fontStyle: "normal",
     },
@@ -38,12 +37,11 @@ Font.register({
       fontWeight: "bold",
       fontStyle: "italic",
     },
-    // If you need extra weights (e.g., 300, 500, 900), register them here.
   ],
 });
 
 /**
- * 2) Create an interface for our PDFExport component props.
+ * 2) Props for PDFExport
  */
 interface PDFExportProps {
   elements: FormElement[];
@@ -52,29 +50,25 @@ interface PDFExportProps {
 }
 
 /**
- * 3) Utility to check if a table cell should be skipped (because of colspan).
+ * 3) Utility: skip cells overshadowed by colspan
  */
 const isSkippedCell = (cellKey: string, cells: any, columns: number) => {
   const [row, col] = cellKey.split("-").map(Number);
-
-  // Check right colspan
+  // Check if it's overshadowed by a cell's colspanRight
   for (let i = 1; i <= columns; i++) {
     const prevCell = `${row}-${col - i}`;
     if (cells[prevCell]?.style?.colspanRight >= i) return true;
   }
-
-  // Check left colspan
+  // Check if overshadowed by colspanLeft
   for (let i = 1; i <= columns; i++) {
     const nextCell = `${row}-${col + i}`;
     if (cells[nextCell]?.style?.colspanLeft >= i) return true;
   }
-
   return false;
 };
 
 /**
- * 4) Global styles used by default. You can tweak these if you want
- *    different base colors, spacing, etc.
+ * 4) Basic global styles
  */
 const baseStyles = StyleSheet.create({
   page: {
@@ -104,26 +98,23 @@ const baseStyles = StyleSheet.create({
 });
 
 /**
- * 5) The main PDFExport component
+ * PDFExport component
  */
 export const PDFExport: React.FC<PDFExportProps> = ({
   elements,
   formValues,
   onClose,
 }) => {
-  // Helper to render the label (if any)
+  // Renders any "label" object property
   const renderLabel = (element: FormElement) => {
     const labelProps = element.properties?.label;
     if (!labelProps) return null;
 
-    // The user might have a string label or an object with styling info
     const labelText =
       typeof labelProps === "object" ? labelProps.text : labelProps;
     if (!labelText) return null;
 
-    // If labelProps is an object, we can read extra styling
     if (typeof labelProps === "object") {
-      // Convert to numeric or default
       const fontSize = labelProps.print?.fontSize
         ? parseFloat(labelProps.print.fontSize)
         : labelProps.fontSize
@@ -136,7 +127,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         labelProps.backgroundColor ||
         "transparent";
       const fontWeight =
-        (labelProps.print?.fontWeight || labelProps.fontWeight) ?? "bold";
+        labelProps.print?.fontWeight || labelProps.fontWeight || "bold";
       const fontStyle =
         labelProps.print?.fontStyle || labelProps.fontStyle || "normal";
       const textAlign =
@@ -175,7 +166,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         </Text>
       );
     } else {
-      // Plain string label
+      // Plain string
       return (
         <Text style={baseStyles.label}>
           {labelText}
@@ -187,20 +178,22 @@ export const PDFExport: React.FC<PDFExportProps> = ({
     }
   };
 
-  // The main function to render each form element's "content" (i.e., input, checkbox, etc.)
+  /**
+   * Renders element content (text fields, checkboxes, table, etc.)
+   */
   const renderElementContent = (element: FormElement, value: any) => {
-    // If property says "no PDF rendering," skip:
+    // If "showInPDF" = false, skip
     if (element.properties?.showInPDF === false) return null;
 
     switch (element.type) {
+      // Common text-based elements
       case "text":
       case "textarea":
       case "number":
       case "select":
       case "date":
       case "time": {
-        // We'll unify these input-based elements for brevity
-        // Example: read some PDF-specific props
+        // Basic input styling for PDF
         const pdfInputBorderColor =
           element.properties.inputBorderColorPDF || "#ccc";
         const pdfInputBorderRadius =
@@ -221,8 +214,8 @@ export const PDFExport: React.FC<PDFExportProps> = ({
           Number(element.properties.inputBorderWidthPDF) || 1;
         const pdfInputHeight = Number(element.properties.inputHeightPDF) || 20;
 
-        // If it's a "date", you might want to format it:
         let displayValue = value || "";
+        // if date, maybe parse
         if (element.type === "date" && value) {
           const dateObj = new Date(value);
           if (!isNaN(dateObj.getTime())) {
@@ -231,8 +224,6 @@ export const PDFExport: React.FC<PDFExportProps> = ({
             const year = dateObj.getFullYear();
             displayValue = `${day}/${month}/${year}`;
           }
-        } else {
-          displayValue = value || "";
         }
 
         return (
@@ -263,6 +254,8 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         );
       }
 
+      // ... you have code for "radio", "checkbox", "toggle", "plainText", etc. ...
+      // Skipping in this snippet for brevity, they remain the same as your original
       case "radio": {
         const options = element.properties.options || [];
         return (
@@ -522,8 +515,8 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         // Force new page
         return <View break />;
 
+      // The new and important part is the "table" case:
       case "table": {
-        // Render a table with the given rows/columns
         const {
           rows = 1,
           columns = 1,
@@ -534,93 +527,118 @@ export const PDFExport: React.FC<PDFExportProps> = ({
           cells = {},
         } = element.properties;
 
+        // Remove the container border to avoid double lines:
+        // We'll rely solely on each cell to draw edges
         return (
-          <View
-            style={{
-              width: "100%",
-              borderWidth,
-              borderColor,
-              borderStyle,
-              borderRadius,
-            }}
-          >
-            {Array.from({ length: rows }).map((_, rowIndex) => {
-              // For each row, figure out the cell keys
-              const rowCells = Array.from({ length: columns }).map(
-                (_, colIndex) => `${rowIndex}-${colIndex}`,
-              );
-              // Figure out column sizing
-              const rowCellsWithSize = rowCells.filter(
-                (key) => cells[key]?.style?.size,
-              );
-              const totalExplicitSize = rowCellsWithSize.reduce(
-                (sum, key) => sum + (cells[key]?.style?.size || 0),
-                0,
-              );
-              const remainingSpace = 12 - totalExplicitSize;
-              const remainingCells = rowCells.length - rowCellsWithSize.length;
-              const defaultSize =
-                remainingCells > 0
-                  ? remainingSpace / remainingCells
-                  : 12 / columns;
+          <View style={{ width: "100%" }}>
+            {Array.from({ length: rows }).map((_, rowIndex) => (
+              <View
+                key={rowIndex}
+                style={{ flexDirection: "row", width: "100%" }}
+              >
+                {Array.from({ length: columns }).map((_, colIndex) => {
+                  const cellKey = `${rowIndex}-${colIndex}`;
+                  if (isSkippedCell(cellKey, cells, columns)) return null;
 
-              return (
-                <View
-                  key={rowIndex}
-                  style={{ flexDirection: "row", width: "100%" }}
-                >
-                  {Array.from({ length: columns }).map((_, colIndex) => {
-                    const cellKey = `${rowIndex}-${colIndex}`;
-                    const cell = cells[cellKey];
+                  const cell = cells[cellKey];
+                  const cellStyle = cell?.style || {};
 
-                    // If this cell is within a colspan, skip rendering
-                    if (isSkippedCell(cellKey, cells, columns)) return null;
+                  // We can do the same "grid" approach or a default if not set
+                  const cellSize = cellStyle.size || 12 / columns;
 
-                    const cellSize = cell?.style?.size || defaultSize;
+                  /**
+                   * Avoiding double lines:
+                   * - The top border is only drawn by rowIndex === 0
+                   * - The bottom border is drawn by *every row*
+                   *   (which means rowIndex=rows-1 draws the table's bottom edge,
+                   *    rowIndex < rows-1 draws interior lines)
+                   * - The left border is only drawn by colIndex === 0
+                   * - The right border is drawn by *every column*
+                   *   (so colIndex=columns-1 draws the far right edge,
+                   *    colIndex < columns-1 draws interior lines)
+                   *
+                   * If this still gives you doubles, you can invert it so that
+                   * each row draws top except the last row draws no top, etc.
+                   * But typically, this pattern works well for a grid.
+                   */
 
-                    return (
-                      <View
-                        key={cellKey}
-                        style={{
-                          width: `${(cellSize / 12) * 100}%`,
-                          padding: cell?.style?.padding || 8,
-                          backgroundColor:
-                            cell?.style?.backgroundColor || "transparent",
-                          borderRightWidth:
-                            colIndex === columns - 1 ? 0 : borderWidth,
-                          borderBottomWidth:
-                            rowIndex === rows - 1 ? 0 : borderWidth,
-                          borderLeftWidth: 0,
-                          borderTopWidth: 0,
-                          borderColor,
-                          borderStyle,
-                        }}
-                      >
-                        {cell && (
-                          <>
-                            {cell.type !== "plainText" && renderLabel(cell)}
+                  // Top border if rowIndex===0, else none
+                  const topBorderWidth = rowIndex === 0 ? borderWidth : 0;
+                  const topBorderColorPDF =
+                    rowIndex === 0
+                      ? (cellStyle.topBorderColorPDF ?? borderColor)
+                      : "transparent";
+
+                  // Bottom border always => no duplication if row below doesn't do top
+                  // But if you prefer only the last row draws bottom, you'd do:
+                  // rowIndex === rows-1 ? borderWidth : 0
+                  // up to you.
+                  const bottomBorderWidth = borderWidth;
+                  const bottomBorderColorPDF =
+                    cellStyle.bottomBorderColorPDF ?? borderColor;
+
+                  // Left border if colIndex===0
+                  const leftBorderWidth = colIndex === 0 ? borderWidth : 0;
+                  const leftBorderColorPDF =
+                    colIndex === 0
+                      ? (cellStyle.leftBorderColorPDF ?? borderColor)
+                      : "transparent";
+
+                  // Right border always => so no duplication if next column doesn't do left
+                  const rightBorderWidth = borderWidth;
+                  const rightBorderColorPDF =
+                    cellStyle.rightBorderColorPDF ?? borderColor;
+
+                  return (
+                    <View
+                      key={cellKey}
+                      style={{
+                        width: `${(cellSize / 12) * 100}%`,
+                        backgroundColor:
+                          cellStyle.backgroundColorPDF || "transparent",
+                        padding: cellStyle.padding || 8,
+
+                        // border style
+                        borderStyle,
+                        // top
+                        borderTopWidth: topBorderWidth,
+                        borderTopColor: topBorderColorPDF,
+                        // bottom
+                        borderBottomWidth: bottomBorderWidth,
+                        borderBottomColor: bottomBorderColorPDF,
+                        // left
+                        borderLeftWidth: leftBorderWidth,
+                        borderLeftColor: leftBorderColorPDF,
+                        // right
+                        borderRightWidth: rightBorderWidth,
+                        borderRightColor: rightBorderColorPDF,
+                      }}
+                    >
+                      {cell ? (
+                        <>
+                          {cell.type !== "plainText" && renderLabel(cell)}
+                          <View style={{ marginTop: 4 }}>
                             {renderElementContent(cell, value?.[cellKey])}
-                          </>
-                        )}
-                      </View>
-                    );
-                  })}
-                </View>
-              );
-            })}
+                          </View>
+                        </>
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
           </View>
         );
       }
 
+      // default fallback
       default:
-        // If element type not recognized, just show value
         return <Text style={baseStyles.value}>{value || ""}</Text>;
     }
   };
 
   /**
-   * 6) Main return: a modal-like overlay with PDFViewer
-   *    that splits elements into rows -> pages -> etc.
+   * 6) The main PDF
    */
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -649,7 +667,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                   return acc;
                 }, {});
 
-                // Sort rows by y, then sort each row's elements by x
+                // Sort rows by y, then each row's elements by x
                 const sortedRowArrays = Object.keys(elementsByRow)
                   .map((k) => Number(k))
                   .sort((a, b) => a - b)
@@ -657,24 +675,19 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                     elementsByRow[rowKey].sort((a, b) => a.x - b.x),
                   );
 
-                // Split into pages where we encounter "pageBreak"
+                // Split into pages if there's a "pageBreak"
                 const pages: FormElement[][][] = [];
                 let currentPageRows: FormElement[][] = [];
 
                 sortedRowArrays.forEach((row) => {
                   currentPageRows.push(row);
-                  // If this row has a pageBreak element, start a new page after it
                   if (row.some((r) => r.type === "pageBreak")) {
                     pages.push(currentPageRows);
                     currentPageRows = [];
                   }
                 });
-                // Push remaining rows if any
-                if (currentPageRows.length) {
-                  pages.push(currentPageRows);
-                }
+                if (currentPageRows.length) pages.push(currentPageRows);
 
-                // Now map over pages
                 return pages.map((pageRows, pageIndex) => (
                   <Page key={pageIndex} size="A4" style={baseStyles.page}>
                     {pageRows.map((row, rowIndex) => (
@@ -691,7 +704,6 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                             key={element.i}
                             style={{
                               ...baseStyles.section,
-                              // convert element.w (grid width, out of 12) to %
                               width: `${((element.w || 12) / 12) * 100}%`,
                             }}
                           >
