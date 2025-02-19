@@ -19,6 +19,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 }) => {
   const { properties, i } = element;
   const [activeTab, setActiveTab] = useState("basic");
+  const [cellElementActiveTab, setCellElementActiveTab] = useState("basic");
   const [cellActiveTab, setCellActiveTab] = useState("element");
   const [borderStyleTab, setBorderStyleTab] = useState("preview");
   const [selectedCell, setSelectedCell] = useState("");
@@ -404,26 +405,45 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
 
                     {cellActiveTab === "element" &&
                       (properties.cells?.[selectedCell]?.type ? (
-                        <RegularPropertyPanel
-                          element={properties.cells[selectedCell]}
-                          onUpdateProperty={(elementId, property, value) => {
-                            const updatedCellContent = {
-                              ...properties.cells[selectedCell],
-                              properties: {
-                                ...properties.cells[selectedCell].properties,
-                                [property]: value,
-                              },
-                            };
-                            onUpdateProperty(i, "cells", {
-                              ...properties.cells,
-                              [selectedCell]: updatedCellContent,
-                            });
-                          }}
-                          onFormValueChange={(elementId, value) => {
-                            onFormValueChange?.(`${i}-${selectedCell}`, value);
-                          }}
-                          isTableCell={true}
-                        />
+                        <div>
+                          <div className="flex bg-gray-100 p-1 rounded-md mb-4">
+                            {["basic", "logic", "config", "validation"].map(
+                              (tab) => (
+                                <button
+                                  key={tab}
+                                  onClick={() => setCellElementActiveTab(tab)}
+                                  className={`flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${cellElementActiveTab === tab ? "bg-white shadow-sm text-blue-600" : "text-gray-600 hover:text-gray-900 hover:bg-white/50"}`}
+                                >
+                                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                              ),
+                            )}
+                          </div>
+                          <RegularPropertyPanel
+                            element={properties.cells[selectedCell]}
+                            onUpdateProperty={(elementId, property, value) => {
+                              const updatedCellContent = {
+                                ...properties.cells[selectedCell],
+                                properties: {
+                                  ...properties.cells[selectedCell].properties,
+                                  [property]: value,
+                                },
+                              };
+                              onUpdateProperty(i, "cells", {
+                                ...properties.cells,
+                                [selectedCell]: updatedCellContent,
+                              });
+                            }}
+                            onFormValueChange={(elementId, value) => {
+                              onFormValueChange?.(
+                                `${i}-${selectedCell}`,
+                                value,
+                              );
+                            }}
+                            isTableCell={true}
+                            activeTab={cellElementActiveTab}
+                          />
+                        </div>
                       ) : (
                         <div className="p-4 text-center text-gray-500 border border-dashed rounded-md">
                           Please select an element to show its properties.

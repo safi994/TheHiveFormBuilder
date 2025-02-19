@@ -9,7 +9,7 @@ import {
   PDFViewer,
   Font,
 } from "@react-pdf/renderer";
-import { FormElement } from "../types"; // Adjust if needed
+import { FormElement } from "../types";
 
 /**
  * 1) Register custom fonts
@@ -107,6 +107,8 @@ export const PDFExport: React.FC<PDFExportProps> = ({
 }) => {
   // Renders any "label" object property
   const renderLabel = (element: FormElement) => {
+    if (element.properties?.showInPDF === false) return null;
+
     const labelProps = element.properties?.label;
     if (!labelProps) return null;
 
@@ -197,7 +199,7 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         const pdfInputBorderColor =
           element.properties.inputBorderColorPDF || "#ccc";
         const pdfInputBorderRadius =
-          Number(element.properties.inputBorderRadiusPDF) || 4;
+          Number(element.properties.inputBorderRadiusPDF) || 0;
         const pdfInputTextAlign =
           element.properties.inputTextAlignPDF || "left";
         const pdfInputFontSize =
@@ -254,8 +256,57 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         );
       }
 
-      // ... you have code for "radio", "checkbox", "toggle", "plainText", etc. ...
-      // Skipping in this snippet for brevity, they remain the same as your original
+      case "plainText": {
+        const defaultText = element.properties.defaultText;
+        const textContent =
+          typeof defaultText === "object" ? defaultText.text : defaultText;
+        if (!textContent) return null;
+
+        if (typeof defaultText === "object") {
+          const fontSize = defaultText.print?.fontSize
+            ? parseFloat(defaultText.print.fontSize)
+            : defaultText.fontSize
+              ? parseFloat(defaultText.fontSize)
+              : 10;
+          const color =
+            defaultText.print?.textColor || defaultText.textColor || "#000";
+          const fontWeight =
+            defaultText.print?.fontWeight || defaultText.fontWeight || "normal";
+          const fontStyle =
+            defaultText.print?.fontStyle || defaultText.fontStyle || "normal";
+          const bgColor =
+            defaultText.print?.backgroundColor ||
+            defaultText.backgroundColor ||
+            "transparent";
+          const textAlign =
+            defaultText.print?.textAlign || defaultText.textAlign || "left";
+          const textDecoration =
+            defaultText.print?.textDecoration ||
+            defaultText.textDecoration ||
+            "none";
+
+          return (
+            <Text
+              style={{
+                fontFamily: "Roboto",
+                fontSize,
+                fontWeight,
+                fontStyle,
+                color,
+                backgroundColor: bgColor,
+                textDecoration,
+                textAlign,
+              }}
+            >
+              {textContent}
+            </Text>
+          );
+        } else {
+          // plain string
+          return <Text style={baseStyles.value}>{textContent}</Text>;
+        }
+      }
+
       case "radio": {
         const options = element.properties.options || [];
         return (
@@ -442,54 +493,6 @@ export const PDFExport: React.FC<PDFExportProps> = ({
         );
       }
 
-      case "plainText": {
-        const defaultText = element.properties.defaultText;
-        const textContent =
-          typeof defaultText === "object" ? defaultText.text : defaultText;
-        if (!textContent) return null;
-
-        if (typeof defaultText === "object") {
-          const fontSize = defaultText.print?.fontSize
-            ? parseFloat(defaultText.print.fontSize)
-            : defaultText.fontSize
-              ? parseFloat(defaultText.fontSize)
-              : 10;
-          const color =
-            defaultText.print?.textColor || defaultText.textColor || "#000";
-          const fontWeight =
-            defaultText.print?.fontWeight || defaultText.fontWeight || "normal";
-          const fontStyle =
-            defaultText.print?.fontStyle || defaultText.fontStyle || "normal";
-          const bgColor =
-            defaultText.print?.backgroundColor ||
-            defaultText.backgroundColor ||
-            "transparent";
-
-          const textDecoration =
-            defaultText.print?.textDecoration ||
-            defaultText.textDecoration ||
-            "none";
-          return (
-            <Text
-              style={{
-                fontFamily: "Roboto",
-                fontSize,
-                fontWeight,
-                fontStyle,
-                color,
-                backgroundColor: bgColor,
-                textDecoration,
-              }}
-            >
-              {textContent}
-            </Text>
-          );
-        } else {
-          // plain string
-          return <Text style={baseStyles.value}>{textContent}</Text>;
-        }
-      }
-
       case "image": {
         // If an image has a value with `.url`, display
         if (!value?.url) return null;
@@ -614,14 +617,14 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                         borderRightColor: rightBorderColorPDF,
                       }}
                     >
-                      {cell ? (
+                      {cell && cell.properties?.showInPDF !== false && (
                         <>
                           {cell.type !== "plainText" && renderLabel(cell)}
                           <View style={{ marginTop: 4 }}>
                             {renderElementContent(cell, value?.[cellKey])}
                           </View>
                         </>
-                      ) : null}
+                      )}
                     </View>
                   );
                 })}
@@ -699,23 +702,28 @@ export const PDFExport: React.FC<PDFExportProps> = ({
                           marginBottom: 16,
                         }}
                       >
-                        {row.map((element) => (
-                          <View
-                            key={element.i}
-                            style={{
-                              ...baseStyles.section,
-                              width: `${((element.w || 12) / 12) * 100}%`,
-                            }}
-                          >
-                            {renderLabel(element)}
-                            <View style={{ marginTop: 8 }}>
-                              {renderElementContent(
-                                element,
-                                formValues[element.i],
-                              )}
+                        {row.map((element) => {
+                          if (element.properties?.showInPDF === false)
+                            return null;
+
+                          return (
+                            <View
+                              key={element.i}
+                              style={{
+                                ...baseStyles.section,
+                                width: `${((element.w || 12) / 12) * 100}%`,
+                              }}
+                            >
+                              {renderLabel(element)}
+                              <View style={{ marginTop: 8 }}>
+                                {renderElementContent(
+                                  element,
+                                  formValues[element.i],
+                                )}
+                              </View>
                             </View>
-                          </View>
-                        ))}
+                          );
+                        })}
                       </View>
                     ))}
                   </Page>

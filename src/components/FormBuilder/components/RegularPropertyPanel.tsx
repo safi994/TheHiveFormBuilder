@@ -7,14 +7,6 @@ const lucideIcons = { AlignLeft, AlignCenter, AlignRight };
 import { TextEditor } from "./TextEditor/TextEditor";
 import { Input } from "@/components/ui/input";
 
-/**
- * Props for your RegularPropertyPanel:
- * - element: The form element being edited
- * - onUpdateProperty: function to update a property
- * - onFormValueChange: (optional) if you store some value in state
- * - isTableCell: (optional) if used in a table
- * - activeTab: e.g. "basic", "logic", "config"
- */
 interface RegularPropertyPanelProps {
   element: FormElement;
   onUpdateProperty: (elementId: string, property: string, value: any) => void;
@@ -23,9 +15,6 @@ interface RegularPropertyPanelProps {
   activeTab?: string;
 }
 
-/**
- * The main component
- */
 export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
   element,
   onUpdateProperty,
@@ -34,70 +23,25 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
   activeTab = "basic",
 }) => {
   const { properties, i } = element;
-
-  // "preview" vs "pdf" tab for your input styling
   const [inputStyleTab, setInputStyleTab] = useState<"preview" | "pdf">(
     "preview",
   );
 
-  /**
-   * Render each property input with custom logic for:
-   * - label
-   * - defaultText
-   * - options
-   * - placeholders
-   * - etc.
-   */
   const renderPropertyInput = (key: string, value: any) => {
-    // 1) Special case: spacing properties
-    if (key === "labelSpacing" || key === "labelSpacingPDF") {
-      return (
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <Slider
-              value={[value || (key === "labelSpacing" ? 8 : 1)]}
-              min={0}
-              max={48}
-              step={1}
-              onValueChange={([newValue]) => {
-                onUpdateProperty(i, key, newValue);
-              }}
-            />
-          </div>
-          <div className="w-20 relative">
-            <Input
-              type="number"
-              min={0}
-              max={48}
-              value={value || (key === "labelSpacing" ? 8 : 1)}
-              onChange={(e) => {
-                const newValue = Number(e.target.value);
-                onUpdateProperty(i, key, newValue);
-              }}
-              className="pr-8"
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
-              px
-            </span>
-          </div>
-        </div>
-      );
+    if (key === "label" && element.type === "plainText" && isTableCell) {
+      return null;
     }
 
-    // 2) Special case: label or plainText uses TextEditor
-    //    (IMPORTANT CHANGE: We'll store PDF font style in label.print.* or defaultText.print.*)
     if (
       (element.type === "plainText" && key === "defaultText") ||
-      key === "label"
+      (key === "label" && (!isTableCell || element.type !== "plainText"))
     ) {
       return (
         <div className="flex items-center gap-2">
-          {/* A basic input for quick text editing */}
           <Input
             value={typeof value === "object" ? value.text : value || ""}
             onChange={(e) => {
               const newText = e.target.value;
-              // If the old value is an object, preserve its props
               if (typeof value === "object") {
                 onUpdateProperty(i, key, { ...value, text: newText });
               } else {
@@ -108,14 +52,13 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
             placeholder="Enter text or use editor..."
           />
 
-          {/* The full text editor for advanced styling */}
           <TextEditor
             value={typeof value === "object" ? value.text : value || ""}
             properties={typeof value === "object" ? value : properties}
             onChange={(newValue, newProperties) => {
               const updatedValue = {
                 ...(typeof value === "object" ? value : {}),
-                ...newProperties, // e.g. bold, italic, color, etc.
+                ...newProperties,
                 text: newValue,
               };
               onUpdateProperty(i, key, updatedValue);
@@ -125,14 +68,12 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
       );
     }
 
-    // 3) Special case: options
     if (key === "options") {
       return renderOptionsInput(value, (newOptions) =>
         onUpdateProperty(i, key, newOptions),
       );
     }
 
-    // 4) Special case: placeholders & defaultValue
     if (key === "placeholder" || key === "defaultValue") {
       return (
         <Input
@@ -143,7 +84,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
       );
     }
 
-    // 5) Switch booleans
     switch (key) {
       case "required":
       case "showInPreview":
@@ -159,7 +99,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
         );
 
       default:
-        // 6) Default: just a text or number input
         return (
           <Input
             type={typeof value === "number" ? "number" : "text"}
@@ -176,9 +115,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
     }
   };
 
-  /**
-   * Renders the "options" array for checkboxes, radios, or select
-   */
   const renderOptionsInput = (
     options: any[] = [],
     onChange: (newOptions: any[]) => void,
@@ -189,7 +125,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
         <div className="text-sm font-medium mb-4">Select Options and Keys</div>
         {options.map((option, index) => (
           <div key={index} className="flex items-center gap-2 mb-2">
-            {/* Option text */}
             <Input
               value={typeof option === "object" ? option.text : option}
               onChange={(e) => {
@@ -214,7 +149,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
               placeholder="Option text"
             />
 
-            {/* If it's not a select, show text editor */}
             {element.type !== "select" && (
               <TextEditor
                 value={typeof option === "object" ? option.text : option}
@@ -239,7 +173,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
               />
             )}
 
-            {/* Option key */}
             <Input
               value={
                 typeof option === "object" ? option.key : `KEY-${index + 1}`
@@ -256,7 +189,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
               placeholder="Option key"
             />
 
-            {/* Remove button */}
             <button
               onClick={() => {
                 const newOptions = options.filter((_, i) => i !== index);
@@ -269,7 +201,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
           </div>
         ))}
 
-        {/* Add option button */}
         <button
           onClick={() => {
             const newOptions = [
@@ -289,10 +220,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
     );
   };
 
-  /**
-   * Grouping your properties by "basic", "logic", "config", etc.
-   * Adjust as needed.
-   */
   const groupProperties = (props: Record<string, any>) => {
     const groups = {
       basic: [
@@ -306,9 +233,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
         "rightLabel",
         "showIndicators",
         "image",
-        "rows",
-        "labelSpacing",
-        "labelSpacingPDF",
       ],
       logic: ["showInPreview", "showInPDF", "multiple", "accept", "maxSize"],
       config: [
@@ -343,10 +267,11 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Render the property groups for the activeTab */}
       <div className="grid grid-cols-2 gap-4">
         {groupedProperties[activeTab].map(([key, value]) => {
-          // Some properties go full width (like label or options)
+          if (key === "label" && element.type === "plainText" && isTableCell) {
+            return null;
+          }
           if (["label", "options"].includes(key)) {
             return (
               <div
@@ -363,7 +288,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
             );
           }
 
-          // Otherwise, half-width
           return (
             <div
               key={key}
@@ -380,13 +304,11 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
         })}
       </div>
 
-      {/* "Input Style" tabs - only for text-based elements (like in your original code) */}
       {["text", "textarea", "number", "select", "date", "time"].includes(
         element.type,
       ) &&
         activeTab === "basic" && (
           <div className="mt-8 space-y-4">
-            {/* Tabs: Preview vs. PDF */}
             <div className="flex bg-gray-100 p-1 rounded-md">
               <button
                 onClick={() => setInputStyleTab("preview")}
@@ -410,12 +332,10 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
               </button>
             </div>
 
-            {/* ------------- BORDER SECTION ------------- */}
             <div className="space-y-6">
               <div className="space-y-4">
                 <h4 className="font-medium">Border</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Border Color */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Color
@@ -466,7 +386,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Border Width */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Width
@@ -533,7 +452,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Border Style */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Style
@@ -563,7 +481,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </select>
                   </div>
 
-                  {/* Border Radius */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Radius
@@ -578,7 +495,7 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                                   ? "BorderRadiusPDF"
                                   : "BorderRadius"
                               }`
-                            ] || 4,
+                            ] || 0,
                           ]}
                           min={0}
                           max={20}
@@ -608,7 +525,7 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                                   ? "BorderRadiusPDF"
                                   : "BorderRadius"
                               }`
-                            ] || 4
+                            ] || 0
                           }
                           onChange={(e) =>
                             onUpdateProperty(
@@ -632,11 +549,9 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                 </div>
               </div>
 
-              {/* ------------- TYPOGRAPHY SECTION ------------- */}
               <div className="space-y-4">
                 <h4 className="font-medium">Typography</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Font Color */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Font Color
@@ -687,7 +602,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Font Size */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Size
@@ -717,7 +631,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Font Weight */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Weight
@@ -743,7 +656,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </select>
                   </div>
 
-                  {/* Font Style */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Style
@@ -770,11 +682,9 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                 </div>
               </div>
 
-              {/* ------------- DIMENSIONS SECTION ------------- */}
               <div className="space-y-4">
                 <h4 className="font-medium">Dimensions</h4>
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Height */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Height
@@ -807,7 +717,7 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                           value={
                             properties[
                               `input${inputStyleTab === "pdf" ? "HeightPDF" : "Height"}`
-                            ] || 40
+                            ] || 20
                           }
                           onChange={(e) =>
                             onUpdateProperty(
@@ -825,7 +735,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                     </div>
                   </div>
 
-                  {/* Text Align */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700">
                       Text Align
@@ -835,39 +744,38 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
                         { value: "left", icon: "AlignLeft" },
                         { value: "center", icon: "AlignCenter" },
                         { value: "right", icon: "AlignRight" },
-                      ].map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() =>
-                            onUpdateProperty(
-                              i,
-                              `input${
-                                inputStyleTab === "pdf"
-                                  ? "TextAlignPDF"
-                                  : "TextAlign"
-                              }`,
-                              option.value,
-                            )
-                          }
-                          className={`flex-1 p-2 border rounded-md transition-all ${
-                            properties[
-                              `input${
-                                inputStyleTab === "pdf"
-                                  ? "TextAlignPDF"
-                                  : "TextAlign"
-                              }`
-                            ] === option.value
-                              ? "bg-primary text-white"
-                              : "hover:bg-gray-50"
-                          }`}
-                        >
-                          <span className="flex items-center justify-center">
-                            {React.createElement(lucideIcons[option.icon], {
-                              size: 16,
-                            })}
-                          </span>
-                        </button>
-                      ))}
+                      ].map((option) => {
+                        const Icon = lucideIcons[option.icon];
+                        return (
+                          <button
+                            key={option.value}
+                            onClick={() =>
+                              onUpdateProperty(
+                                i,
+                                `input${
+                                  inputStyleTab === "pdf"
+                                    ? "TextAlignPDF"
+                                    : "TextAlign"
+                                }`,
+                                option.value,
+                              )
+                            }
+                            className={`flex-1 p-2 border rounded-md transition-all ${
+                              properties[
+                                `input${
+                                  inputStyleTab === "pdf"
+                                    ? "TextAlignPDF"
+                                    : "TextAlign"
+                                }`
+                              ] === option.value
+                                ? "bg-primary text-primary-foreground shadow-sm"
+                                : "hover:bg-muted"
+                            }`}
+                          >
+                            <Icon className="w-4 h-4 mx-auto" />
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
