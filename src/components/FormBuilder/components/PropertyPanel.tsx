@@ -106,7 +106,66 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
     // Commit changes
     onUpdateProperty(i, "cells", updatedCells);
   };
+  // Add these DELETE FUNCTIONS inside your PropertyPanel component (e.g. after handleCellSizeChange)
 
+  // DELETE FUNCTIONS
+
+  const handleCellDelete = (cellKey: string) => {
+    const updatedCells = { ...properties.cells };
+    if (updatedCells[cellKey]) {
+      delete updatedCells[cellKey];
+      onUpdateProperty(i, "cells", updatedCells);
+    }
+  };
+
+  const handleRowDelete = (rowIndex: number) => {
+    const updatedCells = { ...properties.cells };
+    const newCells: any = {};
+    Object.keys(updatedCells).forEach((key) => {
+      const [r, c] = key.split("-").map(Number);
+      if (r === rowIndex) return; // skip deleted row
+      const newRow = r > rowIndex ? r - 1 : r;
+      newCells[`${newRow}-${c}`] = updatedCells[key];
+    });
+    onUpdateProperty(i, "cells", newCells);
+    onUpdateProperty(i, "rows", Math.max(1, (properties.rows || 1) - 1));
+    if (selectedCell && selectedCell.startsWith(`${rowIndex}-`))
+      setSelectedCell("");
+  };
+
+  const handleColumnDelete = (colIndex: number) => {
+    const updatedCells = { ...properties.cells };
+    const newCells: any = {};
+    Object.keys(updatedCells).forEach((key) => {
+      const [r, c] = key.split("-").map(Number);
+      if (c === colIndex) return; // skip deleted column
+      const newCol = c > colIndex ? c - 1 : c;
+      newCells[`${r}-${newCol}`] = updatedCells[key];
+    });
+    onUpdateProperty(i, "cells", newCells);
+    onUpdateProperty(i, "columns", Math.max(1, (properties.columns || 1) - 1));
+    if (selectedCell && selectedCell.split("-")[1] === String(colIndex))
+      setSelectedCell("");
+  };
+
+  // Add this helper function inside your PropertyPanel component (e.g. after handleColumnDelete)
+  const handleCellsSameSize = () => {
+    const defaultSize = getDefaultCellSize();
+    const updatedCells = { ...properties.cells };
+    Object.keys(updatedCells).forEach((key) => {
+      const cell = updatedCells[key];
+      if (cell) {
+        updatedCells[key] = {
+          ...cell,
+          style: {
+            ...cell.style,
+            size: defaultSize,
+          },
+        };
+      }
+    });
+    onUpdateProperty(i, "cells", updatedCells);
+  };
   // Provide a function to list the available cells for the user to pick
   const renderCellOptions = () => {
     const options = [];
@@ -373,18 +432,13 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
           </div>
         </div>
 
-        {/* Visual table cell selector */}
+        {/* Visual table cell selector with delete buttons */}
         <div className="space-y-2">
           <label className="block text-sm font-medium">Select a Cell</label>
           <div className="border rounded-lg p-2 bg-gray-50">
-            <div
-              className="grid gap-1"
-              style={{
-                gridTemplateColumns: `repeat(${properties.columns || 1}, minmax(0, 1fr))`,
-              }}
-            >
-              {Array.from({ length: properties.rows || 1 }).map((_, rowIndex) =>
-                Array.from({ length: properties.columns || 1 }).map(
+            {Array.from({ length: properties.rows || 1 }).map((_, rowIndex) => (
+              <div key={`row-${rowIndex}`} className="flex items-center mb-1">
+                {Array.from({ length: properties.columns || 1 }).map(
                   (_, colIndex) => {
                     const cellKey = `${rowIndex}-${colIndex}`;
                     const isSelected = selectedCell === cellKey;
@@ -398,37 +452,129 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                         properties.columns || 1,
                       )
                     ) {
-                      return null;
+                      return <div key={cellKey} className="flex-1"></div>;
                     }
 
                     return (
-                      <button
+                      <div
                         key={cellKey}
-                        onClick={() => setSelectedCell(cellKey)}
-                        className={`
-                        aspect-square rounded border transition-all
-                        ${isSelected ? "border-primary bg-primary/10 shadow-sm" : "border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5"}
-                        flex items-center justify-center text-xs font-medium
-                      `}
+                        className="relative group flex-1 mx-0.5"
                       >
-                        {cell?.type ? (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <span className="truncate px-1">
-                              {cell.properties?.label?.text || cell.type}
+                        <button
+                          onClick={() => setSelectedCell(cellKey)}
+                          className={`
+                          w-full aspect-square rounded border transition-all
+                          ${
+                            isSelected
+                              ? "border-primary bg-primary/10 shadow-sm"
+                              : "border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5"
+                          }
+                          flex items-center justify-center text-xs font-medium
+                        `}
+                        >
+                          {cell?.type ? (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="truncate px-1">
+                                {cell.properties?.label?.text || cell.type}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 animate-pulse">
+                              Empty
                             </span>
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">Empty</span>
+                          )}
+                        </button>
+                        {/* Cell Content Delete: appears on hover if cell has content */}
+                        {cell?.type && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCellDelete(cellKey);
+                            }}
+                            className="absolute top-1 right-1 bg-white shadow-md rounded-full text-red-500 w-6 h-6 flex items-center justify-center text-sm opacity-0 transition-opacity duration-200 group-hover:opacity-100 hover:bg-red-50"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-4 w-4"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
                         )}
-                      </button>
+                      </div>
                     );
                   },
+                )}
+                {/* Row Delete Button */}
+                <button
+                  onClick={() => handleRowDelete(rowIndex)}
+                  className="ml-1 bg-white shadow-md rounded-full text-red-500 w-6 h-6 flex items-center justify-center text-sm transition-colors duration-200 hover:bg-red-50"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
+            ))}
+            {/* Column Delete Buttons Row */}
+            <div className="flex mt-1">
+              {Array.from({ length: properties.columns || 1 }).map(
+                (_, colIndex) => (
+                  <div
+                    key={`col-delete-${colIndex}`}
+                    className="flex-1 flex justify-center mx-0.5"
+                  >
+                    <button
+                      onClick={() => handleColumnDelete(colIndex)}
+                      className="bg-white shadow-md rounded-full text-red-500 w-6 h-6 flex items-center justify-center text-sm transition-colors duration-200 hover:bg-red-50"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 ),
               )}
+              {/* To account for row delete button space */}
+              <div style={{ width: "1.5rem" }}></div>
             </div>
           </div>
         </div>
-
+        {/* Cells Same Size Button */}
+        <div className="mb-4">
+          <div className="mb-4">
+            <button
+              onClick={handleCellsSameSize}
+              className="w-full py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg shadow-md transition-all duration-200 hover:from-blue-600 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            >
+              Reset Cells to Same Size
+            </button>
+          </div>
+        </div>
         {selectedCell && (
           <div className="space-y-4">
             {/* Element type */}
