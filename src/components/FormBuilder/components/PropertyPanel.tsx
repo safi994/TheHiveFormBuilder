@@ -6,6 +6,20 @@ import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 
+// Helper function from Table component
+function isSkippedCell(cellKey: string, cells: any, columns: number) {
+  const [row, col] = cellKey.split("-").map(Number);
+  for (let i = 1; i <= columns; i++) {
+    const prevCell = `${row}-${col - i}`;
+    if (cells[prevCell]?.style?.colspanRight >= i) return true;
+  }
+  for (let i = 1; i <= columns; i++) {
+    const nextCell = `${row}-${col + i}`;
+    if (cells[nextCell]?.style?.colspanLeft >= i) return true;
+  }
+  return false;
+}
+
 interface PropertyPanelProps {
   element: FormElement;
   onUpdateProperty: (elementId: string, property: string, value: any) => void;
@@ -359,17 +373,60 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
           </div>
         </div>
 
-        {/* Choose a cell */}
+        {/* Visual table cell selector */}
         <div className="space-y-2">
           <label className="block text-sm font-medium">Select a Cell</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={selectedCell}
-            onChange={(e) => setSelectedCell(e.target.value)}
-          >
-            <option value="">Select cell</option>
-            {renderCellOptions()}
-          </select>
+          <div className="border rounded-lg p-2 bg-gray-50">
+            <div
+              className="grid gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${properties.columns || 1}, minmax(0, 1fr))`,
+              }}
+            >
+              {Array.from({ length: properties.rows || 1 }).map((_, rowIndex) =>
+                Array.from({ length: properties.columns || 1 }).map(
+                  (_, colIndex) => {
+                    const cellKey = `${rowIndex}-${colIndex}`;
+                    const isSelected = selectedCell === cellKey;
+                    const cell = properties.cells?.[cellKey];
+
+                    // Skip cells that are part of a colspan
+                    if (
+                      isSkippedCell(
+                        cellKey,
+                        properties.cells || {},
+                        properties.columns || 1,
+                      )
+                    ) {
+                      return null;
+                    }
+
+                    return (
+                      <button
+                        key={cellKey}
+                        onClick={() => setSelectedCell(cellKey)}
+                        className={`
+                        aspect-square rounded border transition-all
+                        ${isSelected ? "border-primary bg-primary/10 shadow-sm" : "border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5"}
+                        flex items-center justify-center text-xs font-medium
+                      `}
+                      >
+                        {cell?.type ? (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <span className="truncate px-1">
+                              {cell.properties?.label?.text || cell.type}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">Empty</span>
+                        )}
+                      </button>
+                    );
+                  },
+                ),
+              )}
+            </div>
+          </div>
         </div>
 
         {selectedCell && (
