@@ -121,8 +121,6 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
   ) => {
     return (
       <div className="space-y-2">
-        <div className="text-sm font-medium mb-2">Options</div>
-        <div className="text-sm font-medium mb-4">Select Options and Keys</div>
         {options.map((option, index) => (
           <div key={index} className="flex items-center gap-2 mb-2">
             <Input
