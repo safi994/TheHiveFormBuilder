@@ -176,6 +176,19 @@ export const PreviewElement: React.FC<PreviewElementProps> = ({
     );
   }
 
+  // Special handling for image element
+  if (element.type === "image" && element.properties.image?.url) {
+    return (
+      <div className="w-full min-h-[140px] flex items-center justify-center">
+        <img
+          src={element.properties.image.url}
+          alt="Uploaded image"
+          className="max-w-full max-h-[140px] w-auto h-auto rounded-lg object-contain"
+        />
+      </div>
+    );
+  }
+
   // Map element types to their corresponding components
   const elementComponents = {
     plainText: PlainText,

@@ -494,12 +494,13 @@ export const PDFExport: React.FC<PDFExportProps> = ({
       }
 
       case "image": {
-        // If an image has a value with `.url`, display
-        if (!value?.url) return null;
+        // Check for image in element properties first, then in value
+        const imageUrl = element.properties.image?.url || value?.url;
+        if (!imageUrl) return null;
         return (
           <View style={{ width: "100%", height: 140 }}>
             <Image
-              src={value.url}
+              src={imageUrl}
               style={{
                 width: "100%",
                 height: "100%",

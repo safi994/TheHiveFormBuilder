@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { FormElement } from "../types";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { X, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
+import {
+  X,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ImagePlus,
+  Trash2,
+} from "lucide-react";
 const lucideIcons = { AlignLeft, AlignCenter, AlignRight };
 import { TextEditor } from "./TextEditor/TextEditor";
 import { Input } from "@/components/ui/input";
@@ -71,6 +78,60 @@ export const RegularPropertyPanel: React.FC<RegularPropertyPanelProps> = ({
     if (key === "options") {
       return renderOptionsInput(value, (newOptions) =>
         onUpdateProperty(i, key, newOptions),
+      );
+    }
+
+    if (key === "image") {
+      return (
+        <div className="space-y-4">
+          {value?.url ? (
+            <div className="relative group">
+              <img
+                src={value.url}
+                alt="Preview"
+                className="w-full h-auto rounded-lg shadow-sm"
+                style={{ maxHeight: "200px", objectFit: "contain" }}
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 rounded-lg">
+                <button
+                  onClick={() => onUpdateProperty(i, key, null)}
+                  className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors flex items-center gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete Image
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      onUpdateProperty(i, key, {
+                        url: e.target?.result,
+                        name: file.name,
+                      });
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+              />
+              <div className="w-full min-h-[140px] border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center gap-3 text-gray-500 hover:border-primary hover:text-primary transition-colors p-4">
+                <ImagePlus className="w-8 h-8" />
+                <div className="text-center">
+                  <p className="text-sm font-medium">Click to upload</p>
+                  <p className="text-xs text-gray-400">SVG, PNG, JPG or GIF</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       );
     }
 
