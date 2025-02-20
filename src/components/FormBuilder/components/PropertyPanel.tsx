@@ -598,8 +598,6 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
                     type: elementType.id,
                     properties: {
                       ...elementType.properties,
-                      labelSpacing: 8,
-                      labelSpacingPDF: 1,
                       showInPreview: true,
                       showInPDF: true,
                       label: {
